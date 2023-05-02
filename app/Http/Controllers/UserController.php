@@ -56,14 +56,12 @@ class UserController extends Controller
     }
     public function sendMessage(Request $request)
     {
-        $userSender = User::find($request->sender);
         Message::create([
             'user_id' => $request->sender,
             'conversation_id' => $request->conversation,
             'message' => $request->message,
             'created_at' => now()
         ]);
-        broadcast(new SendMessage($userSender, $request->message, $request->conversation));
-        return response()->json("ĐÃ gửi thành công");
+        return response()->json(['message'=>$request->message]);
     }
 }

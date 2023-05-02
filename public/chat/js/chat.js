@@ -206,23 +206,24 @@ const chatWithFriends = (user) => {
                     sendMessages(userID, response.data.conversation_id);
                 }
             });
+
             Echo.private(`send.${parseInt(response.data.conversation_id)}`)
-                .listen(`SendMessage`, e => {
+                .listenForWhisper(`send.${parseInt(response.data.conversation_id)}`, (e) => {
                     let messageNewSend = document.createElement('div')
                     messageNewSend.classList.add(`row`)
                     messageNewSend.innerHTML = ` 
-                                 <div class="col-lg-12">
-                                    <div style="${(parseInt(e.sender.id) === parseInt(userID)) ? 'float: right;' : ''}" class="alert alert-${(parseInt(e.sender.id) === parseInt(userID)) ? 'success' : 'primary'} box-content-message-chat" role="alert">
-                                        ${e.message}
-                                    </div>
-                                 </div>
-                           `;
+                             <div class="col-lg-12">
+                                <div class="alert alert-primary box-content-message-chat" role="alert">
+                                    ${e.message}
+                                </div>
+                             </div>
+                       `;
                     boxMessages.insertBefore(messageNewSend, document.querySelector(`.container-typing-amination`));
                     if (document.querySelector(`.box-no-message`)) {
                         document.querySelector(`.box-no-message`).style.display = 'none';
                     }
                     scrollToBottom();
-                });
+                })
         })
         .catch(error => {
             console.log(error);
@@ -230,6 +231,9 @@ const chatWithFriends = (user) => {
 }
 // ============================================================================
 const sendMessages = (sender, conversation) => {
+    let delaySend = true;
+    if (delaySend === false) return;
+    delaySend = false;
     let dataSendMessage = {
         sender: parseInt(sender),
         message: document.querySelector(`#input_send_messages`).value,
@@ -241,10 +245,30 @@ const sendMessages = (sender, conversation) => {
         }
     })
         .then(response => {
+            handleStopTyping();
             document.querySelector(`#input_send_messages`).value = ""
+            let messageNewSend = document.createElement('div')
+            messageNewSend.classList.add(`row`)
+            messageNewSend.innerHTML = ` 
+                         <div class="col-lg-12">
+                            <div style="float: right;" class="alert alert-success box-content-message-chat" role="alert">
+                                ${response.data.message}
+                            </div>
+                         </div>
+                   `;
+            boxMessages.insertBefore(messageNewSend, document.querySelector(`.container-typing-amination`));
+            if (document.querySelector(`.box-no-message`)) {
+                document.querySelector(`.box-no-message`).style.display = 'none';
+            }
+            scrollToBottom();
+            Echo.private(`send.${parseInt(conversation)}`)
+                .whisper(`send.${parseInt(conversation)}`, {
+                    message: response.data.message
+                })
+            delaySend = true;
         })
         .catch(error => {
-
+            console.log(error);
         })
 }
 // ============================================================================
@@ -454,8 +478,8 @@ document.querySelector(`#input_send_messages`).addEventListener('input', functio
 })
 document.querySelector(`#input_send_messages`).addEventListener('blur', handleStopTyping);
 
-document.querySelector(`#input_send_messages`).addEventListener('focus',function(){
-    seenMessage(parseInt(document.querySelector(`#conversation_id`).value),userName);
+document.querySelector(`#input_send_messages`).addEventListener('focus', function () {
+    seenMessage(parseInt(document.querySelector(`#conversation_id`).value), userName);
 })
 
 

@@ -20,15 +20,11 @@ class SendMessage implements ShouldBroadcast
      *
      * @return void
      */
-    public $sender;
-    public $message;
     public $conversation;
 
-    public function __construct(User $sender,string $message,int $conversation)
+    public function __construct()
     {
-        $this->sender = $sender;
-        $this->message = $message;
-        $this->conversation = $conversation;
+
     }
 
     /**
@@ -43,8 +39,6 @@ class SendMessage implements ShouldBroadcast
     public function broadcastWith()
     {
         return [
-            'sender' => $this->sender,
-            'message' => $this->message,
             'conversation' => $this->conversation
         ];
     }

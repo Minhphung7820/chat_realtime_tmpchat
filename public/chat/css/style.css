@@ -54,6 +54,16 @@
     font-weight: bold;
     border: none;
     outline: none;
+    height: 70px;
+}
+
+.box-info-account {
+    background-color: #06d6fb !important;
+    color: white;
+    font-weight: bold;
+    border: none;
+    outline: none;
+    height: 70px;
 }
 
 .status-active-online {
@@ -86,6 +96,11 @@
     font-size: 14px !important;
     top: 64%;
     right: 8%;
+}
+
+.container-image-avatar>span>i {
+    border: 3px solid white;
+    border-radius: 50%;
 }
 
 .container-typing-amination {

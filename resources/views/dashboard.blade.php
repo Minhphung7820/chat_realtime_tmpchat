@@ -18,17 +18,15 @@
 
 <body>
     <div class="container">
-        <div class="row">
-            <div style="min-height:700px;" class="col-lg-3 p-0 bg-primary">
+        <div class="row container-of-app">
+            <div style="min-height:700px;" class="col-lg-3 p-0">
                 <div style="min-height:100%;" class="card">
-                    <div class="card-header">
+                    <div class="card-header box-info-account">
                         {{ auth()->user()->name }}
-                   
                     </div>
                     <nav class="navbar navbar-light bg-light">
-                        <form class="form-inline">
-                            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-                            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">t</button>
+                        <form style="width:100%;" class="form-inline">
+                            <input style="width:100%;" class="form-control" type="search" placeholder="Nhập email, tên tài khoản...">
                         </form>
                     </nav>
                     <div class="card-body">

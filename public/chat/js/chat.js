@@ -265,7 +265,9 @@ const sendMessages = (sender, conversation) => {
                 .whisper(`send.${parseInt(conversation)}`, {
                     message: response.data.message
                 })
-            delaySend = true;
+            setTimeout(() => {
+                delaySend = true;
+            }, 300);
         })
         .catch(error => {
             console.log(error);

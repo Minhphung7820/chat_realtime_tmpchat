@@ -1,0 +1,135 @@
+.my-friend {
+    cursor: pointer;
+}
+
+.box-content-message-chat {
+    display: inline-block;
+    width: auto;
+}
+
+.box-messages {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.box-messages::-webkit-scrollbar {
+    width: 10px;
+    /* set the width of the scrollbar */
+    background-color: rgb(157, 217, 250);
+    /* set the color of the scrollbar */
+}
+
+.box-messages::-webkit-scrollbar-track {
+    border-radius: 5px;
+    /* round the corners of the track */
+}
+
+.box-messages::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    /* round the corners of the thumb */
+    background-color: #067cc1;
+    /* set the color of the thumb */
+    cursor: pointer;
+}
+
+.box-messages::-webkit-scrollbar-thumb:hover {
+    background-color: #999;
+    /* change the color of the thumb on hover */
+}
+
+.friend-focus {
+    background-color: #06d6fb;
+    color: white;
+    font-weight: bold;
+}
+
+.friend-focus .status-active {
+    color: #b5f6ad !important;
+}
+
+.info-friend-chat-with-me {
+    background-color: #06d6fb;
+    color: white;
+    font-weight: bold;
+    border: none;
+    outline: none;
+}
+
+.status-active-online {
+    color: #00e900 !important;
+    font-weight: bold !important;
+}
+
+.dot-when-online {
+    color: #00e900 !important;
+    display: none;
+}
+
+.container-image-avatar {
+    background-color: red;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 30px;
+    text-align: center;
+    padding-top: 2px;
+    position: relative;
+}
+
+.container-image-avatar>span {
+    position: absolute;
+    z-index: 50;
+    color: #00e900;
+    font-size: 14px !important;
+    top: 64%;
+    right: 8%;
+}
+
+.container-typing-amination {
+    display: none;
+}
+
+.typing-animation {
+    display: flex;
+    align-items: center;
+}
+
+.dot {
+    background-color: #007BFF;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    font-weight: bold;
+    margin: 0 4px;
+    animation: dot-animation 1s ease-in-out infinite;
+}
+
+.dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes dot-animation {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(0);
+        opacity: 1;
+    }
+}

@@ -230,9 +230,41 @@ const chatWithFriends = (user) => {
         });
 }
 // ============================================================================
+const handleSendMessage1 = (message) => {
+    return new Promise((resolve, reject) => {
+        handleStopTyping();
+        document.querySelector(`#input_send_messages`).value = ""
+        let messageNewSend = document.createElement('div')
+        messageNewSend.classList.add(`row`)
+        messageNewSend.innerHTML = ` 
+                 <div class="col-lg-12">
+                    <div style="float: right;" class="alert alert-success box-content-message-chat" role="alert">
+                       ${message}
+                    </div>
+                 </div>
+           `;
+        boxMessages.insertBefore(messageNewSend, document.querySelector(`.container-typing-amination`));
+        if (document.querySelector(`.box-no-message`)) {
+            document.querySelector(`.box-no-message`).style.display = 'none';
+        }
+        scrollToBottom();
+        resolve()
+    })
+}
+// ============================================================================
+const handleSendMessage2 = (conversation,message) => {
+    return new Promise((resolve, reject) => {
+        Echo.private(`send.${parseInt(conversation)}`)
+            .whisper(`send.${parseInt(conversation)}`, {
+                message: message
+            })
+        resolve();
+    })
+}
+// ============================================================================
+let delaySend = true;
 const sendMessages = (sender, conversation) => {
-    let delaySend = true;
-    if (delaySend === false) return;
+    if (delaySend == false) return;
     delaySend = false;
     let dataSendMessage = {
         sender: parseInt(sender),
@@ -245,33 +277,16 @@ const sendMessages = (sender, conversation) => {
         }
     })
         .then(response => {
-            handleStopTyping();
-            document.querySelector(`#input_send_messages`).value = ""
-            let messageNewSend = document.createElement('div')
-            messageNewSend.classList.add(`row`)
-            messageNewSend.innerHTML = ` 
-                         <div class="col-lg-12">
-                            <div style="float: right;" class="alert alert-success box-content-message-chat" role="alert">
-                                ${response.data.message}
-                            </div>
-                         </div>
-                   `;
-            boxMessages.insertBefore(messageNewSend, document.querySelector(`.container-typing-amination`));
-            if (document.querySelector(`.box-no-message`)) {
-                document.querySelector(`.box-no-message`).style.display = 'none';
-            }
-            scrollToBottom();
-            Echo.private(`send.${parseInt(conversation)}`)
-                .whisper(`send.${parseInt(conversation)}`, {
-                    message: response.data.message
-                })
-            setTimeout(() => {
-                delaySend = true;
-            }, 300);
+            Promise.all([handleSendMessage1(response.data.message), handleSendMessage2(conversation,response.data.message)]).then(() => {
+                setTimeout(() => {
+                    delaySend = true;
+                }, 300);
+            });
         })
         .catch(error => {
             console.log(error);
         })
+      
 }
 // ============================================================================
 const isInView = (element) => {

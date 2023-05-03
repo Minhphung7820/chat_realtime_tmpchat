@@ -287,7 +287,7 @@ let delaySend = true;
 const sendMessages = (sender, conversation, message) => {
     if (delaySend == false) return;
     delaySend = false;
-    Promise.all([handleSendMessageToServer(sender, conversation, message), handleSendMessageToMe(message), handleSendMessageToOthers(conversation, message)]).then(() => {
+    Promise.all([handleSendMessageToMe(message), handleSendMessageToOthers(conversation, message),handleSendMessageToServer(sender, conversation, message)]).then(() => {
         setTimeout(() => {
             delaySend = true;
         }, 300);

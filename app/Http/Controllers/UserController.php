@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\SendMessage;
+use App\Jobs\InsertMessage;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -56,7 +57,7 @@ class UserController extends Controller
     }
     public function sendMessage(Request $request)
     {
-        Message::create([
+        InsertMessage::dispatch([
             'user_id' => $request->sender,
             'conversation_id' => $request->conversation,
             'message' => $request->message,

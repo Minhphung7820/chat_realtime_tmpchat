@@ -275,12 +275,11 @@ const handleSendMessageToServer = (sender, conversation, message) => {
             }
         })
             .then(response => {
-
+                resolve(response);
             })
             .catch(error => {
-                console.log(error);
+                reject(error)
             })
-        resolve();
     })
 }
 // ============================================================================

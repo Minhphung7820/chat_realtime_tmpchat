@@ -196,14 +196,14 @@ const chatWithFriends = (user) => {
                 e.preventDefault();
                 if (document.querySelector(`#input_send_messages`).value.length === 0) return
                 handleStopTyping();
-                sendMessages(userID, response.data.conversation_id);
+                sendMessages(userID, response.data.conversation_id, document.querySelector(`#input_send_messages`).value);
             })
             document.querySelector(`#input_send_messages`).addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     if (e.target.value.length === 0) return
                     handleStopTyping();
-                    sendMessages(userID, response.data.conversation_id);
+                    sendMessages(userID, response.data.conversation_id, e.target.value);
                 }
             });
 
@@ -230,7 +230,7 @@ const chatWithFriends = (user) => {
         });
 }
 // ============================================================================
-const handleSendMessage1 = (message) => {
+const handleSendMessageToMe = (message) => {
     return new Promise((resolve, reject) => {
         handleStopTyping();
         document.querySelector(`#input_send_messages`).value = ""
@@ -248,11 +248,11 @@ const handleSendMessage1 = (message) => {
             document.querySelector(`.box-no-message`).style.display = 'none';
         }
         scrollToBottom();
-        resolve()
+        resolve();
     })
 }
 // ============================================================================
-const handleSendMessage2 = (conversation,message) => {
+const handleSendMessageToOthers = (conversation, message) => {
     return new Promise((resolve, reject) => {
         Echo.private(`send.${parseInt(conversation)}`)
             .whisper(`send.${parseInt(conversation)}`, {
@@ -262,31 +262,38 @@ const handleSendMessage2 = (conversation,message) => {
     })
 }
 // ============================================================================
+const handleSendMessageToServer = (sender, conversation, message) => {
+    return new Promise((resolve, reject) => {
+        let dataSendMessage = {
+            sender: parseInt(sender),
+            message: message,
+            conversation: parseInt(conversation)
+        };
+        axios.post('/send-message', dataSendMessage, {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            }
+        })
+            .then(response => {
+
+            })
+            .catch(error => {
+                console.log(error);
+            })
+        resolve();
+    })
+}
+// ============================================================================
 let delaySend = true;
-const sendMessages = (sender, conversation) => {
+const sendMessages = (sender, conversation, message) => {
     if (delaySend == false) return;
     delaySend = false;
-    let dataSendMessage = {
-        sender: parseInt(sender),
-        message: document.querySelector(`#input_send_messages`).value,
-        conversation: parseInt(conversation)
-    };
-    axios.post('/send-message', dataSendMessage, {
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-        }
-    })
-        .then(response => {
-            Promise.all([handleSendMessage1(response.data.message), handleSendMessage2(conversation,response.data.message)]).then(() => {
-                setTimeout(() => {
-                    delaySend = true;
-                }, 300);
-            });
-        })
-        .catch(error => {
-            console.log(error);
-        })
-      
+    Promise.all([handleSendMessageToServer(sender, conversation, message), handleSendMessageToMe(message), handleSendMessageToOthers(conversation, message)]).then(() => {
+        setTimeout(() => {
+            delaySend = true;
+        }, 300);
+    });
+
 }
 // ============================================================================
 const isInView = (element) => {

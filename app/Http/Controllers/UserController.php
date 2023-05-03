@@ -62,6 +62,5 @@ class UserController extends Controller
             'message' => $request->message,
             'created_at' => now()
         ]);
-        return response()->json(['message'=>$request->message]);
     }
 }

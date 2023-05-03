@@ -1,12 +1,14 @@
+// Danh sách bạn bè
 let userFriends = [];
+// user đang hoạt động trên kênh
 let userActiveArray = [];
 var boxMessages = document.querySelector('.box-messages');
-// ===============================================================================
+// hiện thời gian với định dạng yyyy-mm-dd hh:mm:ss
 const timeNowFormat = () => {
         const date = new Date();
         return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
     }
-    // =================================================================================
+    // Hàm decounce có tác dụng giúp hàm delay trong 1 khoảng thời gian giúp giảm tình trạng thực hiện hàm liên tực
 const debounce = (fn, delay) => {
     let timeoutId;
     return function(...args) {
@@ -18,7 +20,7 @@ const debounce = (fn, delay) => {
         }, delay);
     };
 };
-// ===================================================================================
+// Seacrch nhanh tài khoản
 // const searchFastAccounts = (searchTerm) => {
 //     console.log(`Đang tìm kiếm với từ khóa "${searchTerm}"...`);
 //     axios.get("/api/ajax/search-fast-account/" + searchTerm + "/" + userID)
@@ -38,7 +40,8 @@ const debounce = (fn, delay) => {
 
 //         })
 // };
-// ====================================================================================
+
+// gọi delay hàm seach bằng debounce
 // const delayedSearchFastAccount = debounce((event) => {
 //     const searchTerm = event.target.value.trim();
 //     if (searchTerm.length >= 3) {
@@ -46,8 +49,10 @@ const debounce = (fn, delay) => {
 //     }
 // }, 300);
 
+// sự kiện gõ phím tìm kiếm
 // document.getElementById("inputSearchFastAccount").addEventListener("keyup", delayedSearchFastAccount)
-// ===============================================================================
+
+// Đây là hàm cập nhật trạng thái hoạt động online từ mảng userActiveArrays của người dùng cứ 500ms refresh 1 lần
 const lastUptimeUpdateRealTime = () => {
     userActiveArray.map(u => {
         if (parseInt(u.online) === 0) {
@@ -78,7 +83,7 @@ const lastUptimeUpdateRealTime = () => {
         })
     })
 };
-// ===============================================================================
+// Cập nhật trạng thái của người dùng trong mảng userActiveArray khi có người join vào kênh
 const displayStatusActive = (id, last, online) => {
         userActiveArray.map(u => {
             if (parseInt(u.user_id) === parseInt(id)) {
@@ -94,7 +99,7 @@ const displayStatusActive = (id, last, online) => {
             }
         })
     }
-    // =================================================================================
+    // cuộc hộp tin nhắn xuống cuối
 const scrollToBottom = () => {
         const scrollTop = boxMessages.scrollHeight - boxMessages.clientHeight;
         boxMessages.scrollTo({
@@ -102,7 +107,7 @@ const scrollToBottom = () => {
             behavior: 'instant'
         });
     }
-    // =================================================================================
+    // chat với người bạn chọn
 const chatWithFriends = (user) => {
         if (document.querySelector(".info-friend-chat-with-me").dataset.id == parseInt(user.id)) return false;
         var message = '';
@@ -175,6 +180,7 @@ const chatWithFriends = (user) => {
                 </div>`;
             boxMessages.innerHTML = message;
             boxMessages.scrollTop = boxMessages.scrollHeight;
+            // Lắng nghe sự kiện gõ phím
             Echo.private(`typing.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`typing.${parseInt(response.data.conversation_id)}`, (e) => {
                     if (document.querySelector(`.container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`)) {
@@ -182,22 +188,26 @@ const chatWithFriends = (user) => {
                     }
                     scrollToBottom();
                 })
+            // Lắng nghe sự kiện ngưng gõ phím
             Echo.private(`stopTyping.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`stopTyping.${parseInt(response.data.conversation_id)}`, (e) => {
                     if (document.querySelector(`.container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`)) {
                         document.querySelector(`.container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`).style.display = 'none';
                     }
                 })
+            // Lắng nghe sự kiện seen tin nhắn
             Echo.private(`seen.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`seen.${parseInt(response.data.conversation_id)}`, (e) => {
                     console.log(`${e.seenerName.split(" ").pop()} đã xem lúc ${e.time}`);
                 })
+            // Gửi tin nhán bằng nút
             document.querySelector(`.btn-send-message`).addEventListener('click', function (e) {
                 e.preventDefault();
                 if (document.querySelector(`#input_send_messages`).value.length === 0) return
                 handleStopTyping();
                 sendMessages(userID, response.data.conversation_id, document.querySelector(`#input_send_messages`).value);
             })
+            // Gửi tin nhắn bằng phím enter
             document.querySelector(`#input_send_messages`).addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -206,7 +216,7 @@ const chatWithFriends = (user) => {
                     sendMessages(userID, response.data.conversation_id, e.target.value);
                 }
             });
-
+            //   Nhận tin nhắn của người khác tức thì
             Echo.private(`send.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`send.${parseInt(response.data.conversation_id)}`, (e) => {
                     let messageNewSend = document.createElement('div')
@@ -229,7 +239,7 @@ const chatWithFriends = (user) => {
             console.log(error);
         });
 }
-// ============================================================================
+// khi gửi tin nhắn hộp tin của tôi xuất hiện tin vừa gửi ngay lập tức
 const handleSendMessageToMe = (message) => {
     return new Promise((resolve, reject) => {
         handleStopTyping();
@@ -251,7 +261,7 @@ const handleSendMessageToMe = (message) => {
         resolve();
     })
 }
-// ============================================================================
+// Hiện tin nhắn vừa gửi lên hộp tin của những người khác 
 const handleSendMessageToOthers = (conversation, message) => {
     return new Promise((resolve, reject) => {
         Echo.private(`send.${parseInt(conversation)}`)
@@ -261,7 +271,7 @@ const handleSendMessageToOthers = (conversation, message) => {
         resolve();
     })
 }
-// ============================================================================
+// Gửi tin nhắn lên server để add database
 const handleSendMessageToServer = (sender, conversation, message) => {
     return new Promise((resolve, reject) => {
         let dataSendMessage = {
@@ -282,19 +292,19 @@ const handleSendMessageToServer = (sender, conversation, message) => {
             })
     })
 }
-// ============================================================================
+// Hàm này này kết hợp 3 hàm trên bằng promise.all() đảm bảo chúng chạy đồng bộ cùng 1 lúc 
 let delaySend = true;
 const sendMessages = (sender, conversation, message) => {
     if (delaySend == false) return;
     delaySend = false;
-    Promise.all([handleSendMessageToMe(message), handleSendMessageToOthers(conversation, message),handleSendMessageToServer(sender, conversation, message)]).then(() => {
+    Promise.all([handleSendMessageToMe(message), handleSendMessageToOthers(conversation, message), handleSendMessageToServer(sender, conversation, message)]).then(() => {
         setTimeout(() => {
             delaySend = true;
         }, 300);
     });
 
 }
-// ============================================================================
+// Kiểm tra một DOM có hiện diện trên desktop không
 const isInView = (element) => {
     const rect = element.getBoundingClientRect();
     return (
@@ -304,7 +314,7 @@ const isInView = (element) => {
         rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
 }
-// ============================================================================
+// Phát sự kiện đã xem tin nhắn
 const seenMessage = (conversation, seenerName) => {
     Echo.private(`seen.${parseInt(conversation)}`)
         .whisper(`seen.${parseInt(conversation)}`, {
@@ -313,7 +323,7 @@ const seenMessage = (conversation, seenerName) => {
             time: formatDate(new Date()),
         })
 }
-// ============================================================================
+// Kiểm tra bạn bè có đang online trên ứng dụng không
 const isOnlineArrays = (here, friend, id) => {
     let sameUsers = [];
 
@@ -328,7 +338,7 @@ const isOnlineArrays = (here, friend, id) => {
     return sameUsers.some(user => parseInt(user.id) === parseInt(id));
 
 }
-// ===============================================================================
+// Hiển thị thời gian truy cập lần cuối
 const getTimeDiff = (lastActive) => {
     const currentTime = new Date();
     const lastActiveTime = new Date(lastActive);
@@ -349,7 +359,7 @@ const getTimeDiff = (lastActive) => {
         return `Vừa mới online`;
     }
 }
-
+// format thời gian tiếng việt
 const formatDate = (date) => {
     const formatter = new Intl.DateTimeFormat('vi-VN', {
         year: 'numeric',
@@ -363,7 +373,7 @@ const formatDate = (date) => {
 
     return formatter.format(date);
 }
-// ===============================================================================
+// cập nhật thời gian truy cập lần cuối cào db khi
 const updateLastActive = (id, last) => {
     axios.post(`/update-active`, {
         user_id: parseInt(id),
@@ -378,7 +388,7 @@ const updateLastActive = (id, last) => {
         // console.log(error);
     })
 }
-// ===============================================================================
+// Lấy tất cả bạn bè
 const getFriends = () => {
     return new Promise((resolve, reject) => {
         axios.get(`/get-friends`)
@@ -390,7 +400,7 @@ const getFriends = () => {
             })
     });
 }
-// ===============================================================================
+// Hiển thị bạn bè từ kết quả của getFriend(), xử lý các trường hợp khi người dùng here,joining, leaving kênh
 getFriends()
     .then(response => {
         Echo.join(`chat`)
@@ -466,12 +476,12 @@ getFriends()
     }).catch(error => {
         console.log(error);
     })
-
+// Chạy update trạng thái
 setInterval(() => {
     lastUptimeUpdateRealTime();
 }, 500);
 
-// =================================================================================
+// Phát sự kiejn gõ phím
 const handleTyping = () => {
     Echo.private(`typing.${parseInt(document.querySelector(`#conversation_id`).value)}`)
         .whisper(`typing.${parseInt(document.querySelector(`#conversation_id`).value)}`, {
@@ -481,7 +491,7 @@ const handleTyping = () => {
         });
     // console.log(parseInt(document.querySelector(`#conversation_id`).value));
 }
-
+// Dùng sự kiện gõ phím
 const handleStopTyping = () => {
     Echo.private(`stopTyping.${parseInt(document.querySelector(`#conversation_id`).value)}`)
         .whisper(`stopTyping.${parseInt(document.querySelector(`#conversation_id`).value)}`, {
@@ -491,7 +501,7 @@ const handleStopTyping = () => {
         });
     // console.log(parseInt(document.querySelector(`#conversation_id`).value));
 }
-
+// Phát sự kiện typing bằng gõ phím
 document.querySelector(`#input_send_messages`).addEventListener('input', function (e) {
     e.preventDefault();
     handleTyping();
@@ -499,8 +509,9 @@ document.querySelector(`#input_send_messages`).addEventListener('input', functio
         handleStopTyping();
     }
 })
+// khi click chuộn ra khỏi input thì phát sự kiện stoptyping
 document.querySelector(`#input_send_messages`).addEventListener('blur', handleStopTyping);
-
+// Phát sự kiện seen tin nhắn khi focus vào input
 document.querySelector(`#input_send_messages`).addEventListener('focus', function () {
     seenMessage(parseInt(document.querySelector(`#conversation_id`).value), userName);
 })

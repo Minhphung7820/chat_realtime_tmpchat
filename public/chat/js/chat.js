@@ -199,6 +199,7 @@ const chatWithFriends = (user) => {
             // Lắng nghe sự kiện seen tin nhắn
             Echo.private(`seen.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`seen.${parseInt(response.data.conversation_id)}`, (e) => {
+                    if (parseInt(e.seenerId) === parseInt(userID)) return;
                     const children = boxMessages.querySelectorAll('[data-sender]');
                     const dataSenderArray = [];
                     for (let i = 0; i < children.length; i++) {
@@ -235,7 +236,7 @@ const chatWithFriends = (user) => {
             //   Nhận tin nhắn của người khác tức thì
             Echo.private(`send.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`send.${parseInt(response.data.conversation_id)}`, (e) => {
-                    if(document.querySelector(`.box-messages .box-notify-message`)){
+                    if (document.querySelector(`.box-messages .box-notify-message`)) {
                         boxMessages.removeChild(document.querySelector(`.box-notify-message`));
                     }
                     let messageNewSend = document.createElement('div')
@@ -243,7 +244,7 @@ const chatWithFriends = (user) => {
                     messageNewSend.dataset.sender = parseInt(e.sender);
                     messageNewSend.innerHTML = ` 
                              <div class="col-lg-12">
-                                <div class="alert alert-primary box-content-message-chat" role="alert">
+                                <div style="${(parseInt(e.sender) === parseInt(userID)) ? "float:right;" : ""}" class="alert alert-${(parseInt(e.sender) === parseInt(userID)) ? "success" : "primary"} box-content-message-chat" role="alert">
                                     ${e.message}
                                 </div>
                              </div>
@@ -263,7 +264,7 @@ const chatWithFriends = (user) => {
 const handleSendMessageToMe = (message) => {
     return new Promise((resolve, reject) => {
         handleStopTyping();
-        if(document.querySelector(`.box-messages .box-notify-message`)){
+        if (document.querySelector(`.box-messages .box-notify-message`)) {
             boxMessages.removeChild(document.querySelector(`.box-notify-message`));
         }
         document.querySelector(`#input_send_messages`).value = ""
@@ -331,6 +332,7 @@ const sendMessages = (sender, conversation, message) => {
 const seenMessage = (conversation, seenerName) => {
     Echo.private(`seen.${parseInt(conversation)}`)
         .whisper(`seen.${parseInt(conversation)}`, {
+            seenerId: parseInt(userID),
             seenerName: seenerName,
             conversation: parseInt(conversation),
             time: formatDate(new Date()),

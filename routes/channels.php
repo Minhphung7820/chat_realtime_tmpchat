@@ -30,6 +30,6 @@ Broadcast::channel('send.{conversation}', function ($user, $conversation) {
     return true;
 });
 Broadcast::channel('seen.{conversation}', function ($data) {
-    Log::info("Đã xem",["conv"=>$data['seenerName']." Đã xem"]);
+    // Log::info("Đã xem",["conv"=>$data['seenerName']." Đã xem"]);
     return true;
 });

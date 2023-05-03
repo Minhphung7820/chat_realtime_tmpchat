@@ -41,7 +41,7 @@ class UserController extends Controller
                 if ($conversation === null) {
                     return response()->json(["data" => false, 'result' => null, 'conversation_id' => null]);
                 }
-                $messages = $conversation->getMessagesBetweenUsers($userChat, $friendChat);
+                $messages = $conversation->getMessagesBetweenUsers($userChat, $friendChat, null);
                 $result = array_reverse(collect($messages)->toArray());
                 return response()->json(["data" => true, 'result' => $result, 'conversation_id' => $conversationId]);
                 break;
@@ -63,5 +63,18 @@ class UserController extends Controller
             'message' => $request->message,
             'created_at' => now()
         ]);
+    }
+
+    public function loadMoreMessages(Request $request)
+    {
+        $conversation = Conversation::find($request->conversation);
+        $userChat  = User::find($request->user);
+        $friendChat = User::find($request->friend);
+        $messages = $conversation->getMessagesBetweenUsers($userChat, $friendChat, $request->idMinMessage);
+        $result = array_reverse(collect($messages)->toArray());
+        if (count($result) > 0) {
+            return response()->json(["data" => true, 'result' => $result]);
+        }
+        return response()->json(["data" => false, 'result' => null]);
     }
 }

@@ -129,7 +129,7 @@ const chatWithFriends = (user) => {
                     document.querySelector(`#receiver_id`).value = parseInt(user.id);
                     document.querySelector(`#conversation_id`).value = parseInt(response.data.conversation_id);
                     if (response.data.result.length === 0) {
-                        message += ` <div data-sender="${null}" class="row box-no-message">
+                        message += ` <div data-message="${null}" data-sender="${null}" class="row box-no-message">
                                         <div class="col-lg-12">
                                             <div style="width:100%;" class="alert alert-warning text-center" role="alert">
                                                 Hãy cùng trò chuyện nào !
@@ -141,7 +141,7 @@ const chatWithFriends = (user) => {
                             var testRight = (parseInt(e.user_id) === parseInt(userID)) ? "float: right;" : "";
                             var colorMessage = (parseInt(e.user_id) === parseInt(userID)) ? "success" : "primary";
                             message += `           
-                                    <div data-sender="${parseInt(e.user_id)}" class="row">
+                                    <div data-message="${e.id}" data-sender="${parseInt(e.user_id)}" class="row">
                                         <div class="col-lg-12">
                                             <div style="${testRight}" class="alert alert-${colorMessage} box-content-message-chat" role="alert">
                                                 ${e.message}
@@ -168,7 +168,7 @@ const chatWithFriends = (user) => {
 
             document.querySelector(".info-friend-chat-with-me").dataset.id = user.id;
             boxMessages.innerHTML = message;
-            boxMessages.scrollTop = boxMessages.scrollHeight;
+            if(boxMessages.scrollHeight > boxMessages.clientHeight) boxMessages.scrollTop = boxMessages.scrollHeight;
             // Lắng nghe sự kiện gõ phím
             Echo.private(`typing.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`typing.${parseInt(response.data.conversation_id)}`, (e) => {
@@ -200,10 +200,10 @@ const chatWithFriends = (user) => {
             Echo.private(`seen.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`seen.${parseInt(response.data.conversation_id)}`, (e) => {
                     if (parseInt(e.seenerId) === parseInt(userID)) return;
-                    const children = boxMessages.querySelectorAll('[data-sender]');
+                    const datasetSender = boxMessages.querySelectorAll('[data-sender]');
                     const dataSenderArray = [];
-                    for (let i = 0; i < children.length; i++) {
-                        const dataSender = children[i].dataset.sender;
+                    for (let i = 0; i < datasetSender.length; i++) {
+                        const dataSender = datasetSender[i].dataset.sender;
                         dataSenderArray.push(parseInt(dataSender));
                     }
                     let lastSender = dataSenderArray[dataSenderArray.length - 1];
@@ -233,7 +233,7 @@ const chatWithFriends = (user) => {
                     sendMessages(userID, response.data.conversation_id, e.target.value);
                 }
             });
-            //   Nhận tin nhắn của người khác tức thì
+            // Nhận tin nhắn của người khác tức thì
             Echo.private(`send.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`send.${parseInt(response.data.conversation_id)}`, (e) => {
                     if (document.querySelector(`.box-messages .box-notify-message`)) {
@@ -255,10 +255,65 @@ const chatWithFriends = (user) => {
                     }
                     scrollToBottom();
                 })
+
+            boxMessages.addEventListener('scroll', function () {
+                // console.log(boxMessages.clientHeight);
+                // console.log(boxMessages.scrollHeight);
+                // console.log(boxMessages.scrollTop);
+                if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {
+                    loadMoreMessages(userID, user.id, response.data.conversation_id);
+                }
+            });
         })
         .catch(error => {
             console.log(error);
         });
+}
+// loading thêm tin nhắn khi cuộn hộp lên đầu
+const loadMoreMessages = (user, friend, conversation) => {
+    const datasetIdMesssages = boxMessages.querySelectorAll('[data-message]');
+    if (datasetIdMesssages.length === 0) return;
+    const datasetIdMesssagesArray = [];
+    for (let i = 0; i < datasetIdMesssages.length; i++) {
+        const dataIdMessage = datasetIdMesssages[i].dataset.message;
+        datasetIdMesssagesArray.push(parseInt(dataIdMessage));
+    }
+    const idMessageMinInBox = Math.min(...datasetIdMesssagesArray);
+    let iconLoadingMoreMessages = document.createElement(`div`);
+    iconLoadingMoreMessages.classList.add(`loading-spinner`);
+    iconLoadingMoreMessages.innerHTML = `<div class="spinner"></div>`;
+    if (!document.querySelector(`.box-messages .loading-spinner`)) boxMessages.insertBefore(iconLoadingMoreMessages, boxMessages.firstChild);
+    axios.post(`/load-more-messages`, {
+        user: parseInt(user),
+        friend: parseInt(friend),
+        conversation: parseInt(conversation),
+        idMinMessage: parseInt(idMessageMinInBox),
+    }, {
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+        }
+    }).then(response => {
+        if (document.querySelector(`.box-messages .loading-spinner`)) {
+            boxMessages.removeChild(document.querySelector(`.loading-spinner`));
+        }
+        if (response.data.data === true) {
+            var messageLoaded = '';
+            response.data.result.forEach(m => {
+                messageLoaded += ` <div data-message="${parseInt(m.id)}" data-sender="${parseInt(m.user_id)}" class="row">
+                    <div class="col-lg-12">
+                        <div style="${(parseInt(m.user_id) === parseInt(userID)) ? "float:right;" : "" }" class="alert alert-${(parseInt(m.user_id) === parseInt(userID)) ? "success" : "primary" } box-content-message-chat" role="alert">
+                            ${m.message}
+                        </div>
+                    </div>
+                </div>`;
+            });
+            boxMessages.innerHTML = messageLoaded + boxMessages.innerHTML;
+            var heithMessage = document.querySelector(`[data-message]`).clientHeight;
+            boxMessages.scrollTop = boxMessages.scrollHeight - heithMessage*parseInt(response.data.result.length);
+        }
+    }).catch(error => {
+        console.log(error);
+    });
 }
 // khi gửi tin nhắn hộp tin của tôi xuất hiện tin vừa gửi ngay lập tức
 const handleSendMessageToMe = (message) => {

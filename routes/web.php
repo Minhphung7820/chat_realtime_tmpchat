@@ -17,10 +17,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
   Route::get('/', [UserController::class, 'index']);
-  Route::post('/load-detail-conversation',[UserController::class,'getDetailConversation']);
-  Route::get('/get-friends',[UserController::class,'getFriends']);
-  Route::post('/update-active',[UserController::class,'uptimeLastActive']);
-  Route::post('/send-message',[UserController::class,'sendMessage']);
+  Route::post('/load-detail-conversation', [UserController::class, 'getDetailConversation']);
+  Route::get('/get-friends', [UserController::class, 'getFriends']);
+  Route::post('/update-active', [UserController::class, 'uptimeLastActive']);
+  Route::post('/send-message', [UserController::class, 'sendMessage']);
+  Route::post('/load-more-messages', [UserController::class, 'loadMoreMessages']);
 });
 
 

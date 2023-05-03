@@ -270,9 +270,11 @@ const chatWithFriends = (user) => {
         });
 }
 // loading thêm tin nhắn khi cuộn hộp lên đầu
+let delayLoadMoreMessages = true;
 const loadMoreMessages = (user, friend, conversation) => {
     const datasetIdMesssages = boxMessages.querySelectorAll('[data-message]');
-    if (datasetIdMesssages.length === 0) return;
+    if (datasetIdMesssages.length === 0 || delayLoadMoreMessages === false) return;
+    delayLoadMoreMessages = false;
     const datasetIdMesssagesArray = [];
     for (let i = 0; i < datasetIdMesssages.length; i++) {
         const dataIdMessage = datasetIdMesssages[i].dataset.message;
@@ -310,6 +312,9 @@ const loadMoreMessages = (user, friend, conversation) => {
             boxMessages.innerHTML = messageLoaded + boxMessages.innerHTML;
             var heithMessage = document.querySelector(`[data-message]`).clientHeight;
             boxMessages.scrollTop = boxMessages.scrollHeight - heithMessage*parseInt(response.data.result.length);
+            setTimeout(() => {
+                delayLoadMoreMessages =true;
+            }, 300);
         }
     }).catch(error => {
         console.log(error);

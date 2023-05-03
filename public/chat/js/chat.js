@@ -129,7 +129,7 @@ const chatWithFriends = (user) => {
                     document.querySelector(`#receiver_id`).value = parseInt(user.id);
                     document.querySelector(`#conversation_id`).value = parseInt(response.data.conversation_id);
                     if (response.data.result.length === 0) {
-                        message += ` <div class="row box-no-message">
+                        message += ` <div data-sender="${null}" class="row box-no-message">
                                         <div class="col-lg-12">
                                             <div style="width:100%;" class="alert alert-warning text-center" role="alert">
                                                 Hãy cùng trò chuyện nào !
@@ -138,10 +138,10 @@ const chatWithFriends = (user) => {
                                     </div>`;
                     } else {
                         response.data.result.forEach(e => {
-                            var testRight = (e.user_id === parseInt(userID)) ? "float: right;" : "";
-                            var colorMessage = (e.user_id === parseInt(userID)) ? "success" : "primary";
+                            var testRight = (parseInt(e.user_id) === parseInt(userID)) ? "float: right;" : "";
+                            var colorMessage = (parseInt(e.user_id) === parseInt(userID)) ? "success" : "primary";
                             message += `           
-                                    <div class="row">
+                                    <div data-sender="${parseInt(e.user_id)}" class="row">
                                         <div class="col-lg-12">
                                             <div style="${testRight}" class="alert alert-${colorMessage} box-content-message-chat" role="alert">
                                                 ${e.message}
@@ -167,8 +167,15 @@ const chatWithFriends = (user) => {
                                                 </div>`;
 
             document.querySelector(".info-friend-chat-with-me").dataset.id = user.id;
-            message += `<div class="row container-typing-amination container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}">
-                    <div class="col-lg-12">
+            boxMessages.innerHTML = message;
+            boxMessages.scrollTop = boxMessages.scrollHeight;
+            // Lắng nghe sự kiện gõ phím
+            Echo.private(`typing.${parseInt(response.data.conversation_id)}`)
+                .listenForWhisper(`typing.${parseInt(response.data.conversation_id)}`, (e) => {
+                    let aminationTyping = document.createElement(`div`)
+                    aminationTyping.classList.add(`row`, `container-typing-amination`, `container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`)
+                    aminationTyping.innerHTML =
+                        `<div class="col-lg-12">
                         <div class="alert alert-primary box-content-message-chat" role="alert">
                              <div class="typing-animation">
                                  <div class="dot"></div>
@@ -176,29 +183,38 @@ const chatWithFriends = (user) => {
                                  <div class="dot"></div>
                              </div>
                         </div>
-                    </div>
-                </div>`;
-            boxMessages.innerHTML = message;
-            boxMessages.scrollTop = boxMessages.scrollHeight;
-            // Lắng nghe sự kiện gõ phím
-            Echo.private(`typing.${parseInt(response.data.conversation_id)}`)
-                .listenForWhisper(`typing.${parseInt(response.data.conversation_id)}`, (e) => {
-                    if (document.querySelector(`.container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`)) {
-                        document.querySelector(`.container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`).style.display = 'block';
+                    </div>`;
+                    if (!document.querySelector(`.box-messages .container-typing-amination`)) {
+                        boxMessages.appendChild(aminationTyping);
                     }
                     scrollToBottom();
                 })
             // Lắng nghe sự kiện ngưng gõ phím
             Echo.private(`stopTyping.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`stopTyping.${parseInt(response.data.conversation_id)}`, (e) => {
-                    if (document.querySelector(`.container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`)) {
-                        document.querySelector(`.container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`).style.display = 'none';
+                    if (document.querySelector(`.box-messages .container-typing-amination`)) {
+                        boxMessages.removeChild(document.querySelector(`.container-typing-amination`));
                     }
                 })
             // Lắng nghe sự kiện seen tin nhắn
             Echo.private(`seen.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`seen.${parseInt(response.data.conversation_id)}`, (e) => {
-                    console.log(`${e.seenerName.split(" ").pop()} đã xem lúc ${e.time}`);
+                    const children = boxMessages.querySelectorAll('[data-sender]');
+                    const dataSenderArray = [];
+                    for (let i = 0; i < children.length; i++) {
+                        const dataSender = children[i].dataset.sender;
+                        dataSenderArray.push(parseInt(dataSender));
+                    }
+                    let lastSender = dataSenderArray[dataSenderArray.length - 1];
+                    if (parseInt(lastSender) === parseInt(userID)) {
+                        if (!document.querySelector('.box-messages .box-notify-message')) {
+                            let notifySeenMessage = document.createElement('div');
+                            notifySeenMessage.classList.add(`box-notify-message`);
+                            notifySeenMessage.innerHTML = `<em>${e.seenerName.split(" ").pop()} đã xem</em>`;
+                            boxMessages.appendChild(notifySeenMessage);
+                        }
+                        scrollToBottom()
+                    }
                 })
             // Gửi tin nhán bằng nút
             document.querySelector(`.btn-send-message`).addEventListener('click', function (e) {
@@ -219,8 +235,12 @@ const chatWithFriends = (user) => {
             //   Nhận tin nhắn của người khác tức thì
             Echo.private(`send.${parseInt(response.data.conversation_id)}`)
                 .listenForWhisper(`send.${parseInt(response.data.conversation_id)}`, (e) => {
+                    if(document.querySelector(`.box-messages .box-notify-message`)){
+                        boxMessages.removeChild(document.querySelector(`.box-notify-message`));
+                    }
                     let messageNewSend = document.createElement('div')
                     messageNewSend.classList.add(`row`)
+                    messageNewSend.dataset.sender = parseInt(e.sender);
                     messageNewSend.innerHTML = ` 
                              <div class="col-lg-12">
                                 <div class="alert alert-primary box-content-message-chat" role="alert">
@@ -243,9 +263,13 @@ const chatWithFriends = (user) => {
 const handleSendMessageToMe = (message) => {
     return new Promise((resolve, reject) => {
         handleStopTyping();
+        if(document.querySelector(`.box-messages .box-notify-message`)){
+            boxMessages.removeChild(document.querySelector(`.box-notify-message`));
+        }
         document.querySelector(`#input_send_messages`).value = ""
         let messageNewSend = document.createElement('div')
         messageNewSend.classList.add(`row`)
+        messageNewSend.dataset.sender = parseInt(userID);
         messageNewSend.innerHTML = ` 
                  <div class="col-lg-12">
                     <div style="float: right;" class="alert alert-success box-content-message-chat" role="alert">
@@ -266,6 +290,7 @@ const handleSendMessageToOthers = (conversation, message) => {
     return new Promise((resolve, reject) => {
         Echo.private(`send.${parseInt(conversation)}`)
             .whisper(`send.${parseInt(conversation)}`, {
+                sender: parseInt(userID),
                 message: message
             })
         resolve();
@@ -283,13 +308,11 @@ const handleSendMessageToServer = (sender, conversation, message) => {
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             }
+        }).then(response => {
+            resolve(response);
+        }).catch(error => {
+            reject(error)
         })
-            .then(response => {
-                resolve(response);
-            })
-            .catch(error => {
-                reject(error)
-            })
     })
 }
 // Hàm này này kết hợp 3 hàm trên bằng promise.all() đảm bảo chúng chạy đồng bộ cùng 1 lúc 
@@ -303,16 +326,6 @@ const sendMessages = (sender, conversation, message) => {
         }, 300);
     });
 
-}
-// Kiểm tra một DOM có hiện diện trên desktop không
-const isInView = (element) => {
-    const rect = element.getBoundingClientRect();
-    return (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    );
 }
 // Phát sự kiện đã xem tin nhắn
 const seenMessage = (conversation, seenerName) => {
@@ -459,7 +472,7 @@ getFriends()
         Echo.join('chat')
             .leaving(user => {
                 // console.log(user.name + " đã rời");
-                var containerBoxFriendToLeave = document.querySelector(".box-my-friends");
+                // var containerBoxFriendToLeave = document.querySelector(".box-my-friends");
                 var friendLeave = document.querySelector(".box-friend-id-" + parseInt(user.id));
                 if (friendLeave) {
                     let delayUpdateActive;

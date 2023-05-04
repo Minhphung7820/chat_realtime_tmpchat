@@ -168,6 +168,7 @@ const chatWithFriends = (user) => {
 
             document.querySelector(".info-friend-chat-with-me").dataset.id = user.id;
             boxMessages.innerHTML = message;
+            // Tin nhắn lúc nào cũng được keeso xuống cùng nếu  nếu hiện thanh trượt scroll
             if(boxMessages.scrollHeight > boxMessages.clientHeight) boxMessages.scrollTop = boxMessages.scrollHeight;
             // Lắng nghe sự kiện gõ phím
             Echo.private(`typing.${parseInt(response.data.conversation_id)}`)
@@ -257,9 +258,6 @@ const chatWithFriends = (user) => {
                 })
 
             boxMessages.addEventListener('scroll', function () {
-                // console.log(boxMessages.clientHeight);
-                // console.log(boxMessages.scrollHeight);
-                // console.log(boxMessages.scrollTop);
                 if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {
                     loadMoreMessages(userID, user.id, response.data.conversation_id);
                 }
@@ -273,6 +271,7 @@ const chatWithFriends = (user) => {
 let delayLoadMoreMessages = true;
 const loadMoreMessages = (user, friend, conversation) => {
     const datasetIdMesssages = boxMessages.querySelectorAll('[data-message]');
+    let oldScrollHeightBoxMessage = boxMessages.scrollHeight;
     if (datasetIdMesssages.length === 0 || delayLoadMoreMessages === false) return;
     delayLoadMoreMessages = false;
     const datasetIdMesssagesArray = [];
@@ -299,19 +298,21 @@ const loadMoreMessages = (user, friend, conversation) => {
             boxMessages.removeChild(document.querySelector(`.loading-spinner`));
         }
         if (response.data.data === true) {
-            var messageLoaded = '';
+            var messageLoaded;
             response.data.result.forEach(m => {
-                messageLoaded += ` <div data-message="${parseInt(m.id)}" data-sender="${parseInt(m.user_id)}" class="row">
-                    <div class="col-lg-12">
+                messageLoaded = document.createElement(`div`);
+                messageLoaded.classList.add(`row`);
+                messageLoaded.dataset.message = parseInt(m.id);
+                messageLoaded.dataset.sender = parseInt(m.user_id);
+                messageLoaded.innerHTML = 
+                 ` <div class="col-lg-12">
                         <div style="${(parseInt(m.user_id) === parseInt(userID)) ? "float:right;" : "" }" class="alert alert-${(parseInt(m.user_id) === parseInt(userID)) ? "success" : "primary" } box-content-message-chat" role="alert">
                             ${m.message}
                         </div>
-                    </div>
-                </div>`;
+                    </div>`;
+                    boxMessages.insertBefore(messageLoaded,boxMessages.firstChild)
             });
-            boxMessages.innerHTML = messageLoaded + boxMessages.innerHTML;
-            var heithMessage = document.querySelector(`[data-message]`).clientHeight;
-            boxMessages.scrollTop = boxMessages.scrollHeight - heithMessage*parseInt(response.data.result.length);
+            boxMessages.scrollTop = boxMessages.scrollHeight - (oldScrollHeightBoxMessage + (boxMessages.clientHeight / 2 - 150));
             setTimeout(() => {
                 delayLoadMoreMessages =true;
             }, 300);

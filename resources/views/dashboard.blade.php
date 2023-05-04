@@ -76,8 +76,6 @@
                     </div>
                     <div style="display:none;" class="col-lg-12 p-4 container-form-send-message">
                         <form class="form-inline" id="form-submit-send-messages">
-                            <input type="hidden" id="receiver_id" name="receiver_id" value="">
-                            <input type="hidden" id="conversation_id" name="conversation_id" value="">
                             <input autocomplete="off" require style="width:84%;" id="input_send_messages" name="message" class="form-control mr-sm-2" type="text" placeholder="Nhập tin nhắn">
                             <button style="width:14%;" class="btn btn-outline-success my-2 my-sm-0 btn-send-message" type="button"><i class="	fas fa-paper-plane"></i></button>
                         </form>

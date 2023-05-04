@@ -147,10 +147,18 @@ const chatWithFriends = (user) => {
                 Promise.resolve(user)
             ])
             .then(([response, user]) => {
+                    //  Dừng tất cả các event whisper liên quan đến cuộc trò truyện để tránh trùng lặp sự kiện
+                    Echo.private(`send.${idConversation}`)
+                        .stopListeningForWhisper(`send.${idConversation}`);
+                    Echo.private(`seen.${idConversation}`)
+                        .stopListeningForWhisper(`seen.${idConversation}`);
+                    Echo.private(`typing.${idConversation}`)
+                        .stopListeningForWhisper(`typing.${idConversation}`);
+                    Echo.private(`stopTyping.${idConversation}`)
+                        .stopListeningForWhisper(`stopTyping.${idConversation}`);
+                    //  Id cuộc trò truyện
                     idConversation = parseInt(response.data.conversation_id);
                     document.querySelector(`.container-form-send-message`).style.display = 'block';
-                    document.querySelector(`#receiver_id`).value = parseInt(user.id);
-                    document.querySelector(`#conversation_id`).value = idConversation;
                     if (response.data.result.length === 0) {
                         message += ` <div data-message="${null}" data-sender="${null}" class="row box-no-message">
                                         <div class="col-lg-12">
@@ -254,7 +262,7 @@ const chatWithFriends = (user) => {
                         if (document.querySelector(`.box-messages .box-notify-message`)) {
                             boxMessages.removeChild(document.querySelector(`.box-notify-message`));
                         }
-                        let messageNewSend = document.createElement('div')
+                        var messageNewSend = document.createElement('div')
                         messageNewSend.classList.add(`row`)
                         messageNewSend.dataset.sender = parseInt(e.sender);
                         messageNewSend.innerHTML = ` 
@@ -270,7 +278,7 @@ const chatWithFriends = (user) => {
                         }
                         scrollToBottom();
                     }
-                });
+                })
 
             boxMessages.addEventListener('scroll', function () {
                 if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {

@@ -22,6 +22,7 @@ Route::middleware(['auth'])->group(function () {
   Route::post('/update-active', [UserController::class, 'uptimeLastActive']);
   Route::post('/send-message', [UserController::class, 'sendMessage']);
   Route::post('/load-more-messages', [UserController::class, 'loadMoreMessages']);
+  Route::post('/search-fast-account', [UserController::class, 'searchFast']);
 });
 
 

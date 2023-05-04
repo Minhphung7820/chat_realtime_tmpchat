@@ -26,7 +26,7 @@
                     </div>
                     <nav class="navbar navbar-light bg-light">
                         <form style="width:100%;" class="form-inline">
-                            <input style="width:100%;" class="form-control" type="search" placeholder="Nhập email, tên tài khoản...">
+                            <input style="width:100%;" class="form-control" type="search" id="input-search-fast-users" placeholder="Nhập email, tên tài khoản...">
                         </form>
                     </nav>
                     <div class="card-body">

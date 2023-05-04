@@ -28,7 +28,6 @@ const handleTyping = (conversation) => {
                 name: userName,
                 typing: true
             });
-        // console.log(parseInt(document.querySelector(`#conversation_id`).value));
     }
     // Dùng sự kiện gõ phím
 const handleStopTyping = (conversation) => {
@@ -38,39 +37,42 @@ const handleStopTyping = (conversation) => {
                 name: userName,
                 typing: true
             });
-        // console.log(parseInt(document.querySelector(`#conversation_id`).value));
     }
     // Seacrch nhanh tài khoản
-    // const searchFastAccounts = (searchTerm) => {
-    //     console.log(`Đang tìm kiếm với từ khóa "${searchTerm}"...`);
-    //     axios.get("/api/ajax/search-fast-account/" + searchTerm + "/" + userID)
-    //         .then(response => {
-    //             if (response.data.success == true) {
-    //                 if (response.data.message.length == 0) {
-    //                     console.log("Không tìm thấy kết quả !");
-    //                 } else {
-    //                     let arrayResults = response.data.message;
-    //                     arrayResults.forEach(value => {
-    //                         console.log(value.first_name + " " + value.last_name);
-    //                     });
-    //                 }
-    //             }
-    //         })
-    //         .catch(error => {
-
-//         })
-// };
+const searchFastAccounts = (searchTerm) => {
+    console.log(`Đang tìm kiếm với từ khóa "${searchTerm}"...`);
+    axios.post(`/search-fast-account`, {
+        key: searchTerm,
+    }, {
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
+        }
+    }).then(response => {
+        if (response.data.success === true) {
+            if (response.data.message.length === 0) {
+                console.log("Không tìm thấy kết quả !");
+            } else {
+                let arrayResults = response.data.message;
+                arrayResults.forEach(value => {
+                    console.log(value.name);
+                });
+            }
+        }
+    }).catch(error => {
+        console.log(error);
+    })
+};
 
 // gọi delay hàm seach bằng debounce
-// const delayedSearchFastAccount = debounce((event) => {
-//     const searchTerm = event.target.value.trim();
-//     if (searchTerm.length >= 3) {
-//         searchFastAccounts(searchTerm);
-//     }
-// }, 300);
+const delayedSearchFastAccount = debounce((event) => {
+    const searchTerm = event.target.value.trim();
+    if (searchTerm.length >= 3) {
+        searchFastAccounts(searchTerm);
+    }
+}, 300);
 
 // sự kiện gõ phím tìm kiếm
-// document.getElementById("inputSearchFastAccount").addEventListener("keyup", delayedSearchFastAccount)
+document.querySelector(`#input-search-fast-users`).addEventListener(`input`, delayedSearchFastAccount)
 
 // Đây là hàm cập nhật trạng thái hoạt động online từ mảng userActiveArrays của người dùng cứ 500ms refresh 1 lần
 const lastUptimeUpdateRealTime = () => {
@@ -212,7 +214,7 @@ const chatWithFriends = (user) => {
                         }
                         scrollToBottom();
                     }
-                }).stopListening(`typing.${idConversation}`)
+                });
             // Lắng nghe sự kiện ngưng gõ phím
             Echo.private(`stopTyping.${idConversation}`)
                 .listenForWhisper(`stopTyping.${idConversation}`, (e) => {
@@ -221,7 +223,7 @@ const chatWithFriends = (user) => {
                             boxMessages.removeChild(document.querySelector(`.container-typing-amination`));
                         }
                     }
-                }).stopListening(`stopTyping.${idConversation}`);
+                });
             // Lắng nghe sự kiện seen tin nhắn
             Echo.private(`seen.${idConversation}`)
                 .listenForWhisper(`seen.${idConversation}`, (e) => {
@@ -244,7 +246,7 @@ const chatWithFriends = (user) => {
                             scrollToBottom()
                         }
                     }
-                }).stopListening(`seen.${idConversation}`);
+                });
             // Nhận tin nhắn của người khác tức thì
             Echo.private(`send.${idConversation}`)
                 .listenForWhisper(`send.${idConversation}`, (e) => {
@@ -268,7 +270,7 @@ const chatWithFriends = (user) => {
                         }
                         scrollToBottom();
                     }
-                }).stopListening(`send.${idConversation}`);
+                });
 
             boxMessages.addEventListener('scroll', function () {
                 if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {

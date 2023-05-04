@@ -77,4 +77,15 @@ class UserController extends Controller
         }
         return response()->json(["data" => false, 'result' => null]);
     }
+    public function searchFast(Request $request)
+    {
+        $key = $request->key;
+        $result = User::where(function ($query) use ($key) {
+            $query->where('name', 'like', '%' . $key . '%');
+            $query->orWhere('email', 'like', '%' . $key . '%');
+        })->orderBy('name', 'asc')->take(10)->get();
+        if ($result) {
+            return response()->json(['success' => true, 'message' => $result]);
+        }
+    }
 }

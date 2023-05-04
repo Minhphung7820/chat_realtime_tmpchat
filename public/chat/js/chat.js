@@ -20,23 +20,43 @@ const debounce = (fn, delay) => {
         }, delay);
     };
 };
-// Seacrch nhanh tài khoản
-// const searchFastAccounts = (searchTerm) => {
-//     console.log(`Đang tìm kiếm với từ khóa "${searchTerm}"...`);
-//     axios.get("/api/ajax/search-fast-account/" + searchTerm + "/" + userID)
-//         .then(response => {
-//             if (response.data.success == true) {
-//                 if (response.data.message.length == 0) {
-//                     console.log("Không tìm thấy kết quả !");
-//                 } else {
-//                     let arrayResults = response.data.message;
-//                     arrayResults.forEach(value => {
-//                         console.log(value.first_name + " " + value.last_name);
-//                     });
-//                 }
-//             }
-//         })
-//         .catch(error => {
+// Phát sự kiejn gõ phím
+const handleTyping = (conversation) => {
+        Echo.private(`typing.${parseInt(conversation)}`)
+            .whisper(`typing.${parseInt(conversation)}`, {
+                conversation: parseInt(conversation),
+                name: userName,
+                typing: true
+            });
+        // console.log(parseInt(document.querySelector(`#conversation_id`).value));
+    }
+    // Dùng sự kiện gõ phím
+const handleStopTyping = (conversation) => {
+        Echo.private(`stopTyping.${parseInt(conversation)}`)
+            .whisper(`stopTyping.${parseInt(conversation)}`, {
+                conversation: parseInt(conversation),
+                name: userName,
+                typing: true
+            });
+        // console.log(parseInt(document.querySelector(`#conversation_id`).value));
+    }
+    // Seacrch nhanh tài khoản
+    // const searchFastAccounts = (searchTerm) => {
+    //     console.log(`Đang tìm kiếm với từ khóa "${searchTerm}"...`);
+    //     axios.get("/api/ajax/search-fast-account/" + searchTerm + "/" + userID)
+    //         .then(response => {
+    //             if (response.data.success == true) {
+    //                 if (response.data.message.length == 0) {
+    //                     console.log("Không tìm thấy kết quả !");
+    //                 } else {
+    //                     let arrayResults = response.data.message;
+    //                     arrayResults.forEach(value => {
+    //                         console.log(value.first_name + " " + value.last_name);
+    //                     });
+    //                 }
+    //             }
+    //         })
+    //         .catch(error => {
 
 //         })
 // };
@@ -108,6 +128,7 @@ const scrollToBottom = () => {
         });
     }
     // chat với người bạn chọn
+let idConversation
 const chatWithFriends = (user) => {
         if (document.querySelector(".info-friend-chat-with-me").dataset.id == parseInt(user.id)) return false;
         var message = '';
@@ -124,10 +145,10 @@ const chatWithFriends = (user) => {
                 Promise.resolve(user)
             ])
             .then(([response, user]) => {
-                    // console.log(parseInt(response.data.conversation_id));
+                    idConversation = parseInt(response.data.conversation_id);
                     document.querySelector(`.container-form-send-message`).style.display = 'block';
                     document.querySelector(`#receiver_id`).value = parseInt(user.id);
-                    document.querySelector(`#conversation_id`).value = parseInt(response.data.conversation_id);
+                    document.querySelector(`#conversation_id`).value = idConversation;
                     if (response.data.result.length === 0) {
                         message += ` <div data-message="${null}" data-sender="${null}" class="row box-no-message">
                                         <div class="col-lg-12">
@@ -154,13 +175,13 @@ const chatWithFriends = (user) => {
                     var statusUserChatting = userActiveArray.find(u => parseInt(u.user_id) === parseInt(user.id))
                     document.querySelector(".info-friend-chat-with-me").innerHTML = ` 
                     <div class="row p-0">
-                                                    <div class="col-lg-1">
+                                                    <div class="col-lg-1 col-sm-2 col-xs-6">
                                                        <div class="container-image-avatar">
                                                             <div>${user.name.charAt(0)}</div>
                                                             <span data-id="${user.id}"  class="dot-status-active-user-chatting-${user.id}"><i ${parseInt(statusUserChatting.online) === 1 ? `style="display:block;"` : ``} class="	fas fa-circle dot-when-online"></i></span>
                                                        </div>
                                                     </div>
-                                                    <div class="col-lg-11">
+                                                    <div class="col-lg-11 col-sm-10 col-xs-6">
                                                         <div class="h5">${user.name}</div>
                                                         <p class="status-active-of-user-chatting-${user.id}">${statusUserChatting.status}</p>
                                                     </div>
@@ -169,99 +190,126 @@ const chatWithFriends = (user) => {
             document.querySelector(".info-friend-chat-with-me").dataset.id = user.id;
             boxMessages.innerHTML = message;
             // Tin nhắn lúc nào cũng được keeso xuống cùng nếu  nếu hiện thanh trượt scroll
-            if(boxMessages.scrollHeight > boxMessages.clientHeight) boxMessages.scrollTop = boxMessages.scrollHeight;
+            if (boxMessages.scrollHeight > boxMessages.clientHeight) boxMessages.scrollTop = boxMessages.scrollHeight;
             // Lắng nghe sự kiện gõ phím
-            Echo.private(`typing.${parseInt(response.data.conversation_id)}`)
-                .listenForWhisper(`typing.${parseInt(response.data.conversation_id)}`, (e) => {
-                    let aminationTyping = document.createElement(`div`)
-                    aminationTyping.classList.add(`row`, `container-typing-amination`, `container-typing-amination-of-conversation-${parseInt(response.data.conversation_id)}`)
-                    aminationTyping.innerHTML =
-                        `<div class="col-lg-12">
-                        <div class="alert alert-primary box-content-message-chat" role="alert">
-                             <div class="typing-animation">
-                                 <div class="dot"></div>
-                                 <div class="dot"></div>
-                                 <div class="dot"></div>
-                             </div>
-                        </div>
-                    </div>`;
-                    if (!document.querySelector(`.box-messages .container-typing-amination`)) {
-                        boxMessages.appendChild(aminationTyping);
+            Echo.private(`typing.${idConversation}`)
+                .listenForWhisper(`typing.${idConversation}`, (e) => {
+                    if (idConversation === parseInt(e.conversation)) {
+                        let aminationTyping = document.createElement(`div`)
+                        aminationTyping.classList.add(`row`, `container-typing-amination`, `container-typing-amination-of-conversation-${idConversation}`)
+                        aminationTyping.innerHTML =
+                            `<div class="col-lg-12">
+                    <div class="alert alert-primary box-content-message-chat" role="alert">
+                         <div class="typing-animation">
+                             <div class="dot"></div>
+                             <div class="dot"></div>
+                             <div class="dot"></div>
+                         </div>
+                    </div>
+                </div>`;
+                        if (!document.querySelector(`.box-messages .container-typing-amination`)) {
+                            boxMessages.appendChild(aminationTyping);
+                        }
+                        scrollToBottom();
                     }
-                    scrollToBottom();
                 })
             // Lắng nghe sự kiện ngưng gõ phím
-            Echo.private(`stopTyping.${parseInt(response.data.conversation_id)}`)
-                .listenForWhisper(`stopTyping.${parseInt(response.data.conversation_id)}`, (e) => {
-                    if (document.querySelector(`.box-messages .container-typing-amination`)) {
-                        boxMessages.removeChild(document.querySelector(`.container-typing-amination`));
+            Echo.private(`stopTyping.${idConversation}`)
+                .listenForWhisper(`stopTyping.${idConversation}`, (e) => {
+                    if (idConversation === parseInt(e.conversation)) {
+                        if (document.querySelector(`.box-messages .container-typing-amination`)) {
+                            boxMessages.removeChild(document.querySelector(`.container-typing-amination`));
+                        }
                     }
                 })
             // Lắng nghe sự kiện seen tin nhắn
-            Echo.private(`seen.${parseInt(response.data.conversation_id)}`)
-                .listenForWhisper(`seen.${parseInt(response.data.conversation_id)}`, (e) => {
-                    if (parseInt(e.seenerId) === parseInt(userID)) return;
-                    const datasetSender = boxMessages.querySelectorAll('[data-sender]');
-                    const dataSenderArray = [];
-                    for (let i = 0; i < datasetSender.length; i++) {
-                        const dataSender = datasetSender[i].dataset.sender;
-                        dataSenderArray.push(parseInt(dataSender));
-                    }
-                    let lastSender = dataSenderArray[dataSenderArray.length - 1];
-                    if (parseInt(lastSender) === parseInt(userID)) {
-                        if (!document.querySelector('.box-messages .box-notify-message')) {
-                            let notifySeenMessage = document.createElement('div');
-                            notifySeenMessage.classList.add(`box-notify-message`);
-                            notifySeenMessage.innerHTML = `<em>${e.seenerName.split(" ").pop()} đã xem</em>`;
-                            boxMessages.appendChild(notifySeenMessage);
+            Echo.private(`seen.${idConversation}`)
+                .listenForWhisper(`seen.${parseInt(idConversation)}`, (e) => {
+                    if (idConversation === parseInt(e.conversation)) {
+                        if (parseInt(e.seenerId) === parseInt(userID)) return;
+                        const datasetSender = boxMessages.querySelectorAll('[data-sender]');
+                        const dataSenderArray = [];
+                        for (let i = 0; i < datasetSender.length; i++) {
+                            const dataSender = datasetSender[i].dataset.sender;
+                            dataSenderArray.push(parseInt(dataSender));
                         }
-                        scrollToBottom()
+                        let lastSender = dataSenderArray[dataSenderArray.length - 1];
+                        if (parseInt(lastSender) === parseInt(userID)) {
+                            if (!document.querySelector('.box-messages .box-notify-message')) {
+                                let notifySeenMessage = document.createElement('div');
+                                notifySeenMessage.classList.add(`box-notify-message`);
+                                notifySeenMessage.innerHTML = `<em>${e.seenerName.split(" ").pop()} đã xem</em>`;
+                                boxMessages.appendChild(notifySeenMessage);
+                            }
+                            scrollToBottom()
+                        }
                     }
                 })
+            // Nhận tin nhắn của người khác tức thì
+            Echo.private(`send.${idConversation}`)
+                .listenForWhisper(`send.${idConversation}`, (e) => {
+                    if (parseInt(e.conversation) === idConversation) {
+                        if (document.querySelector(`.box-messages .box-notify-message`)) {
+                            boxMessages.removeChild(document.querySelector(`.box-notify-message`));
+                        }
+                        let messageNewSend = document.createElement('div')
+                        messageNewSend.classList.add(`row`)
+                        messageNewSend.dataset.sender = parseInt(e.sender);
+                        messageNewSend.innerHTML = ` 
+                                     <div class="col-lg-12">
+                                        <div style="${(parseInt(e.sender) === parseInt(userID)) ? "float:right;" : ""}" class="alert alert-${(parseInt(e.sender) === parseInt(userID)) ? "success" : "primary"} box-content-message-chat" role="alert">
+                                            ${e.message}
+                                        </div>
+                                     </div>
+                               `;
+                        boxMessages.insertBefore(messageNewSend, document.querySelector(`.container-typing-amination`));
+                        if (document.querySelector(`.box-no-message`)) {
+                            document.querySelector(`.box-no-message`).style.display = 'none';
+                        }
+                        scrollToBottom();
+                    }
+                })
+
+            boxMessages.addEventListener('scroll', function () {
+                if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {
+                    loadMoreMessages(userID, user.id, idConversation);
+                }
+            });
             // Gửi tin nhán bằng nút
             document.querySelector(`.btn-send-message`).addEventListener('click', function (e) {
                 e.preventDefault();
                 if (document.querySelector(`#input_send_messages`).value.length === 0) return
-                handleStopTyping();
-                sendMessages(userID, response.data.conversation_id, document.querySelector(`#input_send_messages`).value);
+                handleStopTyping(idConversation);
+                sendMessages(userID, idConversation, document.querySelector(`#input_send_messages`).value);
             })
             // Gửi tin nhắn bằng phím enter
             document.querySelector(`#input_send_messages`).addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     if (e.target.value.length === 0) return
-                    handleStopTyping();
-                    sendMessages(userID, response.data.conversation_id, e.target.value);
+                    handleStopTyping(idConversation);
+                    sendMessages(userID, idConversation, e.target.value);
                 }
             });
-            // Nhận tin nhắn của người khác tức thì
-            Echo.private(`send.${parseInt(response.data.conversation_id)}`)
-                .listenForWhisper(`send.${parseInt(response.data.conversation_id)}`, (e) => {
-                    if (document.querySelector(`.box-messages .box-notify-message`)) {
-                        boxMessages.removeChild(document.querySelector(`.box-notify-message`));
-                    }
-                    let messageNewSend = document.createElement('div')
-                    messageNewSend.classList.add(`row`)
-                    messageNewSend.dataset.sender = parseInt(e.sender);
-                    messageNewSend.innerHTML = ` 
-                             <div class="col-lg-12">
-                                <div style="${(parseInt(e.sender) === parseInt(userID)) ? "float:right;" : ""}" class="alert alert-${(parseInt(e.sender) === parseInt(userID)) ? "success" : "primary"} box-content-message-chat" role="alert">
-                                    ${e.message}
-                                </div>
-                             </div>
-                       `;
-                    boxMessages.insertBefore(messageNewSend, document.querySelector(`.container-typing-amination`));
-                    if (document.querySelector(`.box-no-message`)) {
-                        document.querySelector(`.box-no-message`).style.display = 'none';
-                    }
-                    scrollToBottom();
-                })
+            // Phát sự kiện typing bằng gõ phím
+            document.querySelector(`#input_send_messages`).addEventListener('input', function (e) {
+                e.preventDefault();
+                handleTyping(idConversation);
+                if (e.target.value.length == 0) {
+                    handleStopTyping(idConversation);
+                }
+            })
+            // khi click chuộn ra khỏi input thì phát sự kiện stoptyping
+            document.querySelector(`#input_send_messages`).addEventListener('blur', function (e) {
+                e.preventDefault();
+                handleStopTyping(idConversation)
+            });
+            // Phát sự kiện seen tin nhắn khi focus vào input
+            document.querySelector(`#input_send_messages`).addEventListener('focus', function (e) {
+                e.preventDefault();
+                seenMessage(idConversation);
+            })
 
-            boxMessages.addEventListener('scroll', function () {
-                if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {
-                    loadMoreMessages(userID, user.id, response.data.conversation_id);
-                }
-            });
         })
         .catch(error => {
             console.log(error);
@@ -304,17 +352,17 @@ const loadMoreMessages = (user, friend, conversation) => {
                 messageLoaded.classList.add(`row`);
                 messageLoaded.dataset.message = parseInt(m.id);
                 messageLoaded.dataset.sender = parseInt(m.user_id);
-                messageLoaded.innerHTML = 
-                 ` <div class="col-lg-12">
-                        <div style="${(parseInt(m.user_id) === parseInt(userID)) ? "float:right;" : "" }" class="alert alert-${(parseInt(m.user_id) === parseInt(userID)) ? "success" : "primary" } box-content-message-chat" role="alert">
+                messageLoaded.innerHTML =
+                    ` <div class="col-lg-12">
+                        <div style="${(parseInt(m.user_id) === parseInt(userID)) ? "float:right;" : ""}" class="alert alert-${(parseInt(m.user_id) === parseInt(userID)) ? "success" : "primary"} box-content-message-chat" role="alert">
                             ${m.message}
                         </div>
                     </div>`;
-                    boxMessages.insertBefore(messageLoaded,boxMessages.firstChild)
+                boxMessages.insertBefore(messageLoaded, boxMessages.firstChild)
             });
             boxMessages.scrollTop = boxMessages.scrollHeight - (oldScrollHeightBoxMessage + (boxMessages.clientHeight / 2 - 150));
             setTimeout(() => {
-                delayLoadMoreMessages =true;
+                delayLoadMoreMessages = true;
             }, 300);
         }
     }).catch(error => {
@@ -322,9 +370,9 @@ const loadMoreMessages = (user, friend, conversation) => {
     });
 }
 // khi gửi tin nhắn hộp tin của tôi xuất hiện tin vừa gửi ngay lập tức
-const handleSendMessageToMe = (message) => {
+const handleSendMessageToMe = (message, conversation) => {
     return new Promise((resolve, reject) => {
-        handleStopTyping();
+        handleStopTyping(parseInt(conversation));
         if (document.querySelector(`.box-messages .box-notify-message`)) {
             boxMessages.removeChild(document.querySelector(`.box-notify-message`));
         }
@@ -353,7 +401,8 @@ const handleSendMessageToOthers = (conversation, message) => {
         Echo.private(`send.${parseInt(conversation)}`)
             .whisper(`send.${parseInt(conversation)}`, {
                 sender: parseInt(userID),
-                message: message
+                message: message,
+                conversation: parseInt(conversation)
             })
         resolve();
     })
@@ -382,7 +431,7 @@ let delaySend = true;
 const sendMessages = (sender, conversation, message) => {
     if (delaySend == false) return;
     delaySend = false;
-    Promise.all([handleSendMessageToMe(message), handleSendMessageToOthers(conversation, message), handleSendMessageToServer(sender, conversation, message)]).then(() => {
+    Promise.all([handleSendMessageToMe(message, conversation), handleSendMessageToOthers(conversation, message), handleSendMessageToServer(sender, conversation, message)]).then(() => {
         setTimeout(() => {
             delaySend = true;
         }, 300);
@@ -390,11 +439,11 @@ const sendMessages = (sender, conversation, message) => {
 
 }
 // Phát sự kiện đã xem tin nhắn
-const seenMessage = (conversation, seenerName) => {
+const seenMessage = (conversation) => {
     Echo.private(`seen.${parseInt(conversation)}`)
         .whisper(`seen.${parseInt(conversation)}`, {
             seenerId: parseInt(userID),
-            seenerName: seenerName,
+            seenerName: userName,
             conversation: parseInt(conversation),
             time: formatDate(new Date()),
         })
@@ -556,41 +605,6 @@ getFriends()
 setInterval(() => {
     lastUptimeUpdateRealTime();
 }, 500);
-
-// Phát sự kiejn gõ phím
-const handleTyping = () => {
-    Echo.private(`typing.${parseInt(document.querySelector(`#conversation_id`).value)}`)
-        .whisper(`typing.${parseInt(document.querySelector(`#conversation_id`).value)}`, {
-            conversation: parseInt(document.querySelector(`#conversation_id`).value),
-            name: userName,
-            typing: true
-        });
-    // console.log(parseInt(document.querySelector(`#conversation_id`).value));
-}
-// Dùng sự kiện gõ phím
-const handleStopTyping = () => {
-    Echo.private(`stopTyping.${parseInt(document.querySelector(`#conversation_id`).value)}`)
-        .whisper(`stopTyping.${parseInt(document.querySelector(`#conversation_id`).value)}`, {
-            conversation: parseInt(document.querySelector(`#conversation_id`).value),
-            name: userName,
-            typing: true
-        });
-    // console.log(parseInt(document.querySelector(`#conversation_id`).value));
-}
-// Phát sự kiện typing bằng gõ phím
-document.querySelector(`#input_send_messages`).addEventListener('input', function (e) {
-    e.preventDefault();
-    handleTyping();
-    if (e.target.value.length == 0) {
-        handleStopTyping();
-    }
-})
-// khi click chuộn ra khỏi input thì phát sự kiện stoptyping
-document.querySelector(`#input_send_messages`).addEventListener('blur', handleStopTyping);
-// Phát sự kiện seen tin nhắn khi focus vào input
-document.querySelector(`#input_send_messages`).addEventListener('focus', function () {
-    seenMessage(parseInt(document.querySelector(`#conversation_id`).value), userName);
-})
 
 
 

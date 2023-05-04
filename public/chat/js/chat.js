@@ -199,20 +199,20 @@ const chatWithFriends = (user) => {
                         aminationTyping.classList.add(`row`, `container-typing-amination`, `container-typing-amination-of-conversation-${idConversation}`)
                         aminationTyping.innerHTML =
                             `<div class="col-lg-12">
-                    <div class="alert alert-primary box-content-message-chat" role="alert">
-                         <div class="typing-animation">
-                             <div class="dot"></div>
-                             <div class="dot"></div>
-                             <div class="dot"></div>
-                         </div>
-                    </div>
-                </div>`;
+                                <div class="alert alert-primary box-content-message-chat" role="alert">
+                                    <div class="typing-animation">
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                        <div class="dot"></div>
+                                    </div>
+                                </div>
+                            </div>`;
                         if (!document.querySelector(`.box-messages .container-typing-amination`)) {
                             boxMessages.appendChild(aminationTyping);
                         }
                         scrollToBottom();
                     }
-                })
+                }).stopListening(`typing.${idConversation}`)
             // Lắng nghe sự kiện ngưng gõ phím
             Echo.private(`stopTyping.${idConversation}`)
                 .listenForWhisper(`stopTyping.${idConversation}`, (e) => {
@@ -221,7 +221,7 @@ const chatWithFriends = (user) => {
                             boxMessages.removeChild(document.querySelector(`.container-typing-amination`));
                         }
                     }
-                })
+                }).stopListening(`stopTyping.${idConversation}`);
             // Lắng nghe sự kiện seen tin nhắn
             Echo.private(`seen.${idConversation}`)
                 .listenForWhisper(`seen.${idConversation}`, (e) => {
@@ -244,7 +244,7 @@ const chatWithFriends = (user) => {
                             scrollToBottom()
                         }
                     }
-                })
+                }).stopListening(`seen.${idConversation}`);
             // Nhận tin nhắn của người khác tức thì
             Echo.private(`send.${idConversation}`)
                 .listenForWhisper(`send.${idConversation}`, (e) => {
@@ -268,7 +268,7 @@ const chatWithFriends = (user) => {
                         }
                         scrollToBottom();
                     }
-                })
+                }).stopListening(`send.${idConversation}`);
 
             boxMessages.addEventListener('scroll', function () {
                 if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {

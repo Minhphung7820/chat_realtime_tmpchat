@@ -224,7 +224,7 @@ const chatWithFriends = (user) => {
                 })
             // Lắng nghe sự kiện seen tin nhắn
             Echo.private(`seen.${idConversation}`)
-                .listenForWhisper(`seen.${parseInt(idConversation)}`, (e) => {
+                .listenForWhisper(`seen.${idConversation}`, (e) => {
                     if (idConversation === parseInt(e.conversation)) {
                         if (parseInt(e.seenerId) === parseInt(userID)) return;
                         const datasetSender = boxMessages.querySelectorAll('[data-sender]');

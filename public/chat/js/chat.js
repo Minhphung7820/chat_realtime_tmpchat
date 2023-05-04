@@ -147,6 +147,8 @@ const chatWithFriends = (user) => {
                 Promise.resolve(user)
             ])
             .then(([response, user]) => {
+                    //  Id cuộc trò truyện
+                    idConversation = parseInt(response.data.conversation_id);
                     //  Dừng tất cả các event whisper liên quan đến cuộc trò truyện để tránh trùng lặp sự kiện
                     Echo.private(`send.${idConversation}`)
                         .stopListeningForWhisper(`send.${idConversation}`);
@@ -156,8 +158,6 @@ const chatWithFriends = (user) => {
                         .stopListeningForWhisper(`typing.${idConversation}`);
                     Echo.private(`stopTyping.${idConversation}`)
                         .stopListeningForWhisper(`stopTyping.${idConversation}`);
-                    //  Id cuộc trò truyện
-                    idConversation = parseInt(response.data.conversation_id);
                     document.querySelector(`.container-form-send-message`).style.display = 'block';
                     if (response.data.result.length === 0) {
                         message += ` <div data-message="${null}" data-sender="${null}" class="row box-no-message">

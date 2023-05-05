@@ -297,10 +297,15 @@ const chatWithFriends = (user) => {
                         scrollToBottom();
                     }
                 })
-
+            let delayLoadMoreMessages = true;
             boxMessages.addEventListener('scroll', function () {
                 if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {
+                    if (delayLoadMoreMessages === false) return;
+                    delayLoadMoreMessages = false;
                     loadMoreMessages(userID, user.id, idConversation);
+                    setTimeout(() => {
+                        delayLoadMoreMessages = true
+                    }, 300);
                 }
             });
             // Gửi tin nhán bằng nút
@@ -344,12 +349,10 @@ const chatWithFriends = (user) => {
         });
 }
 // loading thêm tin nhắn khi cuộn hộp lên đầu
-let delayLoadMoreMessages = true;
 const loadMoreMessages = (user, friend, conversation) => {
     const datasetIdMesssages = boxMessages.querySelectorAll('[data-message]');
     let oldScrollHeightBoxMessage = boxMessages.scrollHeight;
-    if (datasetIdMesssages.length === 0 || delayLoadMoreMessages === false) return;
-    delayLoadMoreMessages = false;
+    if (datasetIdMesssages.length === 0) return;
     const datasetIdMesssagesArray = [];
     for (let i = 0; i < datasetIdMesssages.length; i++) {
         const dataIdMessage = datasetIdMesssages[i].dataset.message;
@@ -388,10 +391,7 @@ const loadMoreMessages = (user, friend, conversation) => {
                     </div>`;
                 boxMessages.insertBefore(messageLoaded, boxMessages.firstChild)
             });
-            boxMessages.scrollTop = boxMessages.scrollHeight - (oldScrollHeightBoxMessage + (boxMessages.clientHeight / 2 - 150));
-            setTimeout(() => {
-                delayLoadMoreMessages = true;
-            }, 300);
+            boxMessages.scrollTop = boxMessages.scrollHeight - (oldScrollHeightBoxMessage + (boxMessages.clientHeight / 2 - 200));
         }
     }).catch(error => {
         console.log(error);

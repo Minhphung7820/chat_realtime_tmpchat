@@ -179,3 +179,22 @@
         transform: rotate(360deg);
     }
 }
+
+
+/*  */
+
+.container-form-search-fast {
+    position: relative;
+}
+
+.list-users-result-search {
+    position: absolute;
+    z-index: 100;
+    top: 38px;
+    overflow: auto;
+    height: 400px;
+    background-color: white;
+    display: none;
+    border-radius: 10px;
+    box-shadow: 1px 5px 10px gray;
+}

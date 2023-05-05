@@ -25,9 +25,14 @@
                         {{ auth()->user()->name }}
                     </div>
                     <nav class="navbar navbar-light bg-light">
-                        <form style="width:100%;" class="form-inline">
+                        <form style="width:100%;" class="form-inline container-form-search-fast">
                             <input style="width:100%;" class="form-control" type="search" id="input-search-fast-users" placeholder="Nhập email, tên tài khoản...">
+                            <div style="width:100%;" class="list-users-result-search">
+
+                            </div>
                         </form>
+
+
                     </nav>
                     <div class="card-body">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">

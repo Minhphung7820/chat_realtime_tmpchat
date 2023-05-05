@@ -41,6 +41,7 @@ const handleStopTyping = (conversation) => {
     // Seacrch nhanh tài khoản
 const searchFastAccounts = (searchTerm) => {
     console.log(`Đang tìm kiếm với từ khóa "${searchTerm}"...`);
+    console.log(userActiveArray);
     axios.post(`/search-fast-account`, {
         key: searchTerm,
     }, {
@@ -48,16 +49,27 @@ const searchFastAccounts = (searchTerm) => {
             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
         }
     }).then(response => {
-        if (response.data.success === true) {
-            if (response.data.message.length === 0) {
-                console.log("Không tìm thấy kết quả !");
-            } else {
-                let arrayResults = response.data.message;
-                arrayResults.forEach(value => {
-                    console.log(value.name);
-                });
-            }
+        var accountSearch = '';
+        let searchResults = document.querySelector(`.list-users-result-search`);
+        if (response.data.message.length > 0) {
+            response.data.message.forEach(u => {
+                isMyFriend = userActiveArray.find(user => parseInt(user.user_id) === parseInt(u.id));
+                var who = '';
+                if (parseInt(u.id) === parseInt(userID)) {
+                    who += ' <p class="card-link text-primary">Là tôi</p>';
+                } else {
+                    who += `${isMyFriend ? '<a class="card-link text-success my-friend-in-search">Bạn bè</a>' : '<a class="card-link">+Thêm bạn bè</a>'}`;
+                }
+                accountSearch += `      <div class="card-body">
+                                            <h5 class="h5">${u.name}</h5>
+                                           ${who}
+                                        </div>`;
+            })
+            searchResults.innerHTML = accountSearch;
+        } else {
+
         }
+        searchResults.style.display = 'block';
     }).catch(error => {
         console.log(error);
     })
@@ -72,9 +84,15 @@ const delayedSearchFastAccount = debounce((event) => {
 }, 300);
 
 // sự kiện gõ phím tìm kiếm
+let listUsersSearch = document.querySelector(`.list-users-result-search`);
 document.querySelector(`#input-search-fast-users`).addEventListener(`input`, delayedSearchFastAccount)
-
-// Đây là hàm cập nhật trạng thái hoạt động online từ mảng userActiveArrays của người dùng cứ 500ms refresh 1 lần
+document.addEventListener(`click`, function(event) {
+        const isClickInsideSearch = document.querySelector(`#input-search-fast-users`).contains(event.target) || listUsersSearch.contains(event.target);
+        if (!isClickInsideSearch) {
+            listUsersSearch.style.display = 'none';
+        }
+    })
+    // Đây là hàm cập nhật trạng thái hoạt động online từ mảng userActiveArrays của người dùng cứ 500ms refresh 1 lần
 const lastUptimeUpdateRealTime = () => {
     userActiveArray.map(u => {
         if (parseInt(u.online) === 0) {

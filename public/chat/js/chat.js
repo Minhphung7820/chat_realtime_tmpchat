@@ -322,7 +322,9 @@ const chatWithOnlyFriend = (user) => {
                         }
                         scrollToBottom();
                         if (boxMessages.scrollTop = boxMessages.scrollHeight - boxMessages.clientHeight) {
-                            seenMessage(userChattingWithMeArray[0].id_conv);
+                            if(!document.hidden){
+                                seenMessage(userChattingWithMeArray[0].id_conv);
+                            }
                         }
                     }
                 })

@@ -248,7 +248,7 @@ const chatWithOnlyFriend = (user) => {
             console.log(userChattingWithMeArray[0].id_conv);
             Echo.private(`typing.${userChattingWithMeArray[0].id_conv}`)
                 .listenForWhisper(`typing.${userChattingWithMeArray[0].id_conv}`, (e) => {
-                    if (userChattingWithMeArray[0].id_conv === parseInt(e.conversation)) {
+                    if (userChattingWithMeArray[0].id_conv === parseInt(e.conversation) && parseInt(e.id) !== parseInt(userID)) {
                         let aminationTyping = document.createElement(`div`)
                         aminationTyping.classList.add(`row`, `container-typing-amination`, `container-typing-amination-of-conversation-${userChattingWithMeArray[0].id_conv}`)
                         aminationTyping.innerHTML =
@@ -321,6 +321,9 @@ const chatWithOnlyFriend = (user) => {
                             document.querySelector(`.box-no-message`).style.display = 'none';
                         }
                         scrollToBottom();
+                        if(boxMessages.scrollTop = boxMessages.scrollHeight - boxMessages.clientHeight){
+                            seenMessage(userChattingWithMeArray[0].id_conv);
+                        }
                     }
                 })
             // Gửi tin nhán bằng nút
@@ -352,14 +355,6 @@ const chatWithOnlyFriend = (user) => {
                 e.preventDefault();
                 handleStopTyping(userChattingWithMeArray[0].id_conv)
             });
-            // Phát sự kiện seen tin nhắn khi focus vào input
-            inputSendMessage.addEventListener('focus', function (e) {
-                e.preventDefault();
-                let idConvInput = parseInt(e.target.dataset.conv);
-                if (idConvInput === userChattingWithMeArray[0].id_conv) {
-                    seenMessage(userChattingWithMeArray[0].id_conv);
-                }
-            })
         })
         .catch(error => {
             console.log(error);

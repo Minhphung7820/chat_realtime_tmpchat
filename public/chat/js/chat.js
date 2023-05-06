@@ -50,6 +50,14 @@ const handleStopTyping = (conversation) => {
                 typing: true
             });
     }
+    // Gửi event tới các nơi mà có đang hiển thị cuộc trò truyện này ko
+const checkOnScreenConver = (conversation) => {
+        Echo.private(`screen.conver.${parseInt(conversation)}`)
+            .whisper(`screen.conver.${parseInt(conversation)}`, {
+                id: parseInt(userID),
+                conversation: parseInt(conversation),
+            })
+    }
     // Seacrch nhanh tài khoản
 const searchFastAccounts = (searchTerm) => {
     console.log(`Đang tìm kiếm với từ khóa "${searchTerm}"...`);
@@ -197,6 +205,9 @@ const chatWithOnlyFriend = (user) => {
                         .stopListeningForWhisper(`send.${userChattingWithMeArray[0].id_conv}`);
                     Echo.private(`seen.${userChattingWithMeArray[0].id_conv}`)
                         .stopListeningForWhisper(`seen.${userChattingWithMeArray[0].id_conv}`);
+                    Echo.private(`screen.conver.${userChattingWithMeArray[0].id_conv}`)
+                        .stopListeningForWhisper(`screen.conver.${userChattingWithMeArray[0].id_conv}`);
+                    checkOnScreenConver(userChattingWithMeArray[0].id_conv);
                     document.querySelector(`.container-form-send-message`).style.display = `block`;
                     inputSendMessage.dataset.conv = userChattingWithMeArray[0].id_conv;
                     if (response.data.result.length === 0) {
@@ -244,7 +255,7 @@ const chatWithOnlyFriend = (user) => {
                 if (boxMessages.scrollTop = boxMessages.scrollHeight) {
                     seenMessage(userChattingWithMeArray[0].id_conv);
                 }
-            } else if(boxMessages.scrollHeight === boxMessages.clientHeight) {
+            } else if (boxMessages.scrollHeight === boxMessages.clientHeight) {
                 seenMessage(userChattingWithMeArray[0].id_conv);
             }
             //lắng nghe sự kiện gõ phím
@@ -302,6 +313,22 @@ const chatWithOnlyFriend = (user) => {
                         }
                     }
                 });
+            // Nếu một người nào đó ở máy khác mở cuộc trò truyện mà bạn đang hiển thị trên mà hình mà tin nhắn mới nhất là do họ gửi thì phản hồi cho họ là đã xem
+            Echo.private(`screen.conver.${userChattingWithMeArray[0].id_conv}`)
+                .listenForWhisper(`screen.conver.${userChattingWithMeArray[0].id_conv}`, (e) => {
+                    if (userChattingWithMeArray[0].id_conv === parseInt(e.conversation)) {
+                        const datasetSender = boxMessages.querySelectorAll('[data-sender]');
+                        const dataSenderArray = [];
+                        for (let i = 0; i < datasetSender.length; i++) {
+                            const dataSender = datasetSender[i].dataset.sender;
+                            dataSenderArray.push(parseInt(dataSender));
+                        }
+                        let lastSender = dataSenderArray[dataSenderArray.length - 1];
+                        if (parseInt(lastSender) === parseInt(e.id)) {
+                            seenMessage(userChattingWithMeArray[0].id_conv);
+                        }
+                    }
+                });
             // Nhận tin nhắn của người khác tức thì
             Echo.private(`send.${userChattingWithMeArray[0].id_conv}`)
                 .listenForWhisper(`send.${userChattingWithMeArray[0].id_conv}`, (e) => {
@@ -326,16 +353,16 @@ const chatWithOnlyFriend = (user) => {
 
                         if (boxMessages.scrollHeight > boxMessages.clientHeight) {
                             if (boxMessages.scrollTop = boxMessages.scrollHeight) {
-                                if(!document.hidden){
+                                if (!document.hidden) {
                                     seenMessage(userChattingWithMeArray[0].id_conv);
                                 }
                             }
-                        } else if(boxMessages.scrollHeight === boxMessages.clientHeight) {
-                            if(!document.hidden){
+                        } else if (boxMessages.scrollHeight === boxMessages.clientHeight) {
+                            if (!document.hidden) {
                                 seenMessage(userChattingWithMeArray[0].id_conv);
                             }
                         }
-                     
+
                     }
                 })
             // Gửi tin nhán bằng nút

@@ -29,7 +29,9 @@ Broadcast::channel('stopTyping.{conversation}', function ($user, $conversation) 
 Broadcast::channel('send.{conversation}', function ($user, $conversation) {
     return true;
 });
-Broadcast::channel('seen.{conversation}', function ($data) {
-    // Log::info("Đã xem",["conv"=>$data['seenerName']." Đã xem"]);
+Broadcast::channel('seen.{conversation}', function ($user) {
+    return true;
+});
+Broadcast::channel('screen.conver.{conversation}', function ($user, $conversation) {
     return true;
 });

@@ -241,10 +241,11 @@ const chatWithOnlyFriend = (user) => {
             boxMessages.innerHTML = message;
             // Tin nhắn lúc nào cũng được keeso xuống cùng nếu  nếu hiện thanh trượt scroll
             if (boxMessages.scrollHeight > boxMessages.clientHeight) {
-                seenMessage(userChattingWithMeArray[0].id_conv);
                 if (boxMessages.scrollTop = boxMessages.scrollHeight) {
                     seenMessage(userChattingWithMeArray[0].id_conv);
                 }
+            } else if(boxMessages.scrollHeight === boxMessages.clientHeight) {
+                seenMessage(userChattingWithMeArray[0].id_conv);
             }
             //lắng nghe sự kiện gõ phím
             Echo.private(`typing.${userChattingWithMeArray[0].id_conv}`)
@@ -323,6 +324,11 @@ const chatWithOnlyFriend = (user) => {
                         }
                         scrollToBottom();
                         if (boxMessages.scrollTop = boxMessages.scrollHeight - boxMessages.clientHeight) {
+                            if (!document.hidden) {
+                                seenMessage(userChattingWithMeArray[0].id_conv);
+                            }
+                        }
+                        if (boxMessages.scrollHeight === boxMessages.clientHeight) {
                             if (!document.hidden) {
                                 seenMessage(userChattingWithMeArray[0].id_conv);
                             }

@@ -323,16 +323,19 @@ const chatWithOnlyFriend = (user) => {
                             document.querySelector(`.box-no-message`).style.display = 'none';
                         }
                         scrollToBottom();
-                        if (boxMessages.scrollTop = boxMessages.scrollHeight - boxMessages.clientHeight) {
-                            if (!document.hidden) {
+
+                        if (boxMessages.scrollHeight > boxMessages.clientHeight) {
+                            if (boxMessages.scrollTop = boxMessages.scrollHeight) {
+                                if(!document.hidden){
+                                    seenMessage(userChattingWithMeArray[0].id_conv);
+                                }
+                            }
+                        } else if(boxMessages.scrollHeight === boxMessages.clientHeight) {
+                            if(!document.hidden){
                                 seenMessage(userChattingWithMeArray[0].id_conv);
                             }
                         }
-                        if (boxMessages.scrollHeight === boxMessages.clientHeight) {
-                            if (!document.hidden) {
-                                seenMessage(userChattingWithMeArray[0].id_conv);
-                            }
-                        }
+                     
                     }
                 })
             // Gửi tin nhán bằng nút

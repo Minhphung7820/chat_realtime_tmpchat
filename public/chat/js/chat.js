@@ -183,9 +183,6 @@ const chatWithOnlyFriend = (user) => {
         var message = '';
         getConversation(user)
             .then(response => {
-                    //  Id cuộc trò truyện
-                    // idConversation = parseInt(response.data.conversation_id);
-                    // idUserChatWithMe = parseInt(user.id);
                     // Push thông tin người đang trò truyện và id cuộc trò truyện vào mảng
                     userChattingWithMeArray[0] = {
                         id: parseInt(user.id),
@@ -243,9 +240,13 @@ const chatWithOnlyFriend = (user) => {
             document.querySelector(".info-friend-chat-with-me").dataset.id = user.id;
             boxMessages.innerHTML = message;
             // Tin nhắn lúc nào cũng được keeso xuống cùng nếu  nếu hiện thanh trượt scroll
-            if (boxMessages.scrollHeight > boxMessages.clientHeight) boxMessages.scrollTop = boxMessages.scrollHeight;
+            if (boxMessages.scrollHeight > boxMessages.clientHeight) {
+                seenMessage(userChattingWithMeArray[0].id_conv);
+                if (boxMessages.scrollTop = boxMessages.scrollHeight) {
+                    seenMessage(userChattingWithMeArray[0].id_conv);
+                }
+            }
             //lắng nghe sự kiện gõ phím
-            console.log(userChattingWithMeArray[0].id_conv);
             Echo.private(`typing.${userChattingWithMeArray[0].id_conv}`)
                 .listenForWhisper(`typing.${userChattingWithMeArray[0].id_conv}`, (e) => {
                     if (userChattingWithMeArray[0].id_conv === parseInt(e.conversation) && parseInt(e.id) !== parseInt(userID)) {
@@ -322,7 +323,7 @@ const chatWithOnlyFriend = (user) => {
                         }
                         scrollToBottom();
                         if (boxMessages.scrollTop = boxMessages.scrollHeight - boxMessages.clientHeight) {
-                            if(!document.hidden){
+                            if (!document.hidden) {
                                 seenMessage(userChattingWithMeArray[0].id_conv);
                             }
                         }

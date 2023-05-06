@@ -321,7 +321,7 @@ const chatWithOnlyFriend = (user) => {
                             document.querySelector(`.box-no-message`).style.display = 'none';
                         }
                         scrollToBottom();
-                        if(boxMessages.scrollTop = boxMessages.scrollHeight - boxMessages.clientHeight){
+                        if (boxMessages.scrollTop = boxMessages.scrollHeight - boxMessages.clientHeight) {
                             seenMessage(userChattingWithMeArray[0].id_conv);
                         }
                     }
@@ -355,24 +355,25 @@ const chatWithOnlyFriend = (user) => {
                 e.preventDefault();
                 handleStopTyping(userChattingWithMeArray[0].id_conv)
             });
+            // Sự kiện load thêm tin nhắn
+            let delayLoadMoreMessages = true;
+            boxMessages.addEventListener('scroll', function (e) {
+                e.preventDefault();
+                if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {
+                    if (delayLoadMoreMessages === false) return;
+                    delayLoadMoreMessages = false;
+                    loadMoreMessages(userID, userChattingWithMeArray[0].id, userChattingWithMeArray[0].id_conv);
+                    setTimeout(() => {
+                        delayLoadMoreMessages = true
+                    }, 300);
+                }
+            });
         })
         .catch(error => {
             console.log(error);
         });
 }
-// Sự kiện load thêm tin nhắn
-let delayLoadMoreMessages = true;
-boxMessages.addEventListener('scroll', function (e) {
-    e.preventDefault();
-    if (boxMessages.scrollTop === 0 && boxMessages.scrollHeight > boxMessages.clientHeight) {
-        if (delayLoadMoreMessages === false) return;
-        delayLoadMoreMessages = false;
-        loadMoreMessages(userID, userChattingWithMeArray[0].id, userChattingWithMeArray[0].id_conv);
-        setTimeout(() => {
-            delayLoadMoreMessages = true
-        }, 300);
-    }
-});
+
 // loading thêm tin nhắn khi cuộn hộp lên đầu
 const loadMoreMessages = (user, friend, conversation) => {
     const datasetIdMesssages = boxMessages.querySelectorAll('[data-message]');
@@ -620,8 +621,8 @@ getFriends()
                                 icon: 'error',
                                 title: 'Xảy ra lỗi',
                                 text: 'Thao tác chậm thôi bạn ơi!',
-                              })
-                              return
+                            })
+                            return
                         }
                         flagChatWith = false;
                         chatWithOnlyFriend(user);
